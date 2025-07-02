@@ -10,6 +10,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/SupabaseAuthContext';
 import { formatCFA, DELIVERY_FEE } from '@/lib/currency';
 import LocationPicker from '@/components/LocationPicker';
+import QRCode from 'qrcode';
 
 interface SimpleOrderFormProps {
   cartItems: any[];
@@ -34,6 +35,79 @@ const SimpleOrderForm: React.FC<SimpleOrderFormProps> = ({
     setLocation({ latitude, longitude });
   };
 
+  const generateQRCode = async (orderId: string): Promise<string> => {
+    try {
+      const qrData = JSON.stringify({
+        orderId: orderId,
+        timestamp: new Date().toISOString(),
+        amount: total
+      });
+      
+      const qrCodeDataURL = await QRCode.toDataURL(qrData, {
+        width: 200,
+        margin: 2,
+        color: {
+          dark: '#000000',
+          light: '#FFFFFF'
+        }
+      });
+      
+      return qrCodeDataURL;
+    } catch (error) {
+      console.error('Error generating QR code:', error);
+      return '';
+    }
+  };
+
+  const clearAllCarts = async () => {
+    try {
+      // Nettoyer le panier personnel
+      const { data: personalCart } = await supabase
+        .from('personal_carts')
+        .select('id')
+        .eq('user_id', currentUser?.id)
+        .single();
+
+      if (personalCart) {
+        await supabase
+          .from('personal_cart_items')
+          .delete()
+          .eq('personal_cart_id', personalCart.id);
+      }
+
+      // Nettoyer les paniers recettes
+      const { data: recipeCarts } = await supabase
+        .from('recipe_user_carts')
+        .select('id')
+        .eq('user_id', currentUser?.id);
+
+      if (recipeCarts && recipeCarts.length > 0) {
+        const recipeCartIds = recipeCarts.map(cart => cart.id);
+        
+        // Supprimer les items des paniers recettes
+        await supabase
+          .from('recipe_cart_items')
+          .delete()
+          .in('recipe_cart_id', recipeCartIds);
+
+        // Supprimer les paniers recettes
+        await supabase
+          .from('recipe_user_carts')
+          .delete()
+          .in('id', recipeCartIds);
+      }
+
+      // Nettoyer les paniers préconfigurés
+      await supabase
+        .from('user_preconfigured_carts')
+        .delete()
+        .eq('user_id', currentUser?.id);
+
+    } catch (error) {
+      console.error('Erreur lors du nettoyage du panier:', error);
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -49,6 +123,7 @@ const SimpleOrderForm: React.FC<SimpleOrderFormProps> = ({
     setIsSubmitting(true);
 
     try {
+      // Créer la commande
       const { data: order, error } = await supabase
         .from('orders')
         .insert({
@@ -77,14 +152,21 @@ const SimpleOrderForm: React.FC<SimpleOrderFormProps> = ({
 
       if (error) throw error;
 
-      // Vider le panier après commande réussie
-      if (cartItems.length > 0) {
-        const itemIds = cartItems.map(item => item.id);
+      // Générer le code QR pour la commande
+      const qrCodeDataURL = await generateQRCode(order.id);
+      
+      // Mettre à jour la commande avec le code QR
+      if (qrCodeDataURL) {
         await supabase
-          .from('personal_cart_items')
-          .delete()
-          .in('id', itemIds);
+          .from('orders')
+          .update({ 
+            qr_code: `QR_${order.id.slice(0, 8)}_${Date.now()}` 
+          })
+          .eq('id', order.id);
       }
+
+      // Nettoyer tous les paniers après la commande réussie
+      await clearAllCarts();
 
       toast({
         title: "Commande créée avec succès !",

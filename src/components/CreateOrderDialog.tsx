@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -12,6 +11,7 @@ import { useAuth } from '@/contexts/SupabaseAuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { Plus, Minus, ShoppingCart, MapPin } from 'lucide-react';
+import QRCode from 'qrcode';
 
 interface OrderItem {
   product_id: string;
@@ -38,6 +38,30 @@ const CreateOrderDialog: React.FC<CreateOrderDialogProps> = ({ children }) => {
   });
   const [deliveryNotes, setDeliveryNotes] = useState('');
   const [isCreating, setIsCreating] = useState(false);
+
+  const generateQRCode = async (orderId: string): Promise<string> => {
+    try {
+      const qrData = JSON.stringify({
+        orderId: orderId,
+        timestamp: new Date().toISOString(),
+        amount: calculateTotal()
+      });
+      
+      const qrCodeDataURL = await QRCode.toDataURL(qrData, {
+        width: 200,
+        margin: 2,
+        color: {
+          dark: '#000000',
+          light: '#FFFFFF'
+        }
+      });
+      
+      return qrCodeDataURL;
+    } catch (error) {
+      console.error('Error generating QR code:', error);
+      return '';
+    }
+  };
 
   const addToOrder = (product: any) => {
     const existingItem = orderItems.find(item => item.product_id === product.id);
@@ -97,8 +121,8 @@ const CreateOrderDialog: React.FC<CreateOrderDialogProps> = ({ children }) => {
         .insert({
           user_id: currentUser.id,
           total_amount: calculateTotal(),
-          items: orderItems as any, // Cast to Json type
-          delivery_address: deliveryAddress as any, // Cast to Json type
+          items: orderItems as any,
+          delivery_address: deliveryAddress as any,
           delivery_notes: deliveryNotes || null,
           status: 'pending'
         })
@@ -106,6 +130,19 @@ const CreateOrderDialog: React.FC<CreateOrderDialogProps> = ({ children }) => {
         .single();
 
       if (error) throw error;
+
+      // Générer le code QR pour la commande
+      const qrCodeDataURL = await generateQRCode(data.id);
+      
+      // Mettre à jour la commande avec le code QR
+      if (qrCodeDataURL) {
+        await supabase
+          .from('orders')
+          .update({ 
+            qr_code: `QR_${data.id.slice(0, 8)}_${Date.now()}` 
+          })
+          .eq('id', data.id);
+      }
 
       toast({
         title: "Commande créée",
