@@ -3,13 +3,13 @@ import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { ChefHat, ShoppingCart, Trash2, Plus, Clock } from 'lucide-react';
+import { ChefHat, Trash2, Clock } from 'lucide-react';
 import { useRecipeUserCarts } from '@/hooks/useSupabaseCart';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 
 const RecipeCartsView = () => {
-  const { recipeCarts, isLoading, addToMainCart, removeRecipeCart, isAddingToMain, isRemoving } = useRecipeUserCarts();
+  const { recipeCarts, isLoading, removeRecipeCart, isRemoving } = useRecipeUserCarts();
 
   if (isLoading) {
     return (
@@ -55,15 +55,9 @@ const RecipeCartsView = () => {
                 />
               )}
               <div className="absolute top-2 right-2">
-                {recipeCart.is_added_to_main_cart ? (
-                  <Badge className="bg-green-500">
-                    Ajouté au panier
-                  </Badge>
-                ) : (
-                  <Badge variant="secondary">
-                    En attente
-                  </Badge>
-                )}
+                <Badge className="bg-green-500">
+                  Actif dans le panier
+                </Badge>
               </div>
             </div>
             
@@ -83,43 +77,25 @@ const RecipeCartsView = () => {
                   {format(new Date(recipeCart.created_at), 'dd/MM/yyyy', { locale: fr })}
                 </div>
 
-                <div className="flex space-x-2">
-                  {!recipeCart.is_added_to_main_cart ? (
-                    <Button
-                      onClick={() => addToMainCart(recipeCart.id)}
-                      disabled={isAddingToMain}
-                      className="flex-1 bg-orange-500 hover:bg-orange-600"
-                      size="sm"
-                    >
-                      {isAddingToMain ? (
-                        <div className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full" />
-                      ) : (
-                        <>
-                          <Plus className="h-4 w-4 mr-1" />
-                          Ajouter au panier
-                        </>
-                      )}
-                    </Button>
-                  ) : (
-                    <Button
-                      variant="outline"
-                      className="flex-1"
-                      size="sm"
-                      disabled
-                    >
-                      <ShoppingCart className="h-4 w-4 mr-1" />
-                      Dans le panier
-                    </Button>
-                  )}
-                  
+                <div className="bg-blue-50 p-3 rounded-lg border border-blue-200">
+                  <p className="text-sm text-blue-800 font-medium">
+                    ✅ Inclus automatiquement
+                  </p>
+                  <p className="text-xs text-blue-600 mt-1">
+                    Ce panier fait partie de votre panier principal
+                  </p>
+                </div>
+
+                <div className="flex justify-end">
                   <Button
                     variant="ghost"
-                    size="icon"
+                    size="sm"
                     onClick={() => removeRecipeCart(recipeCart.id)}
                     disabled={isRemoving}
-                    className="text-red-500 hover:text-red-700"
+                    className="text-red-500 hover:text-red-700 hover:bg-red-50"
                   >
-                    <Trash2 className="h-4 w-4" />
+                    <Trash2 className="h-4 w-4 mr-1" />
+                    Supprimer
                   </Button>
                 </div>
               </div>

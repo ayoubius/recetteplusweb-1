@@ -3,7 +3,7 @@ import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Package, Plus, Trash2, ShoppingCart } from 'lucide-react';
+import { Package, Trash2 } from 'lucide-react';
 import { usePreconfiguredCarts } from '@/hooks/useSupabaseCart';
 import { formatCFA } from '@/lib/currency';
 
@@ -11,8 +11,6 @@ const PreconfiguredCartsView = () => {
   const {
     userPreconfiguredCarts,
     isLoadingUserCarts,
-    addToMainCart,
-    isAddingToMain,
     removeUserCart,
     isRemoving
   } = usePreconfiguredCarts();
@@ -50,8 +48,15 @@ const PreconfiguredCartsView = () => {
 
   return (
     <div className="space-y-4">
+      <div className="flex items-center justify-between mb-6">
+        <h2 className="text-2xl font-bold">Mes Paniers Préconfigurés</h2>
+        <Badge variant="outline">
+          {userPreconfiguredCarts.length} panier{userPreconfiguredCarts.length > 1 ? 's' : ''}
+        </Badge>
+      </div>
+
       {userPreconfiguredCarts.map((userCart) => (
-        <Card key={userCart.id} className="shadow-lg border-0 bg-white">
+        <Card key={userCart.id} className="shadow-lg border-0 bg-white hover:shadow-xl transition-all duration-300">
           <CardHeader className="pb-3">
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-3">
@@ -67,17 +72,9 @@ const PreconfiguredCartsView = () => {
                   </p>
                 </div>
               </div>
-              <div className="flex items-center space-x-2">
-                {userCart.is_added_to_main_cart ? (
-                  <Badge className="bg-green-100 text-green-800 border-green-200">
-                    Ajouté au panier
-                  </Badge>
-                ) : (
-                  <Badge variant="outline">
-                    En attente
-                  </Badge>
-                )}
-              </div>
+              <Badge className="bg-green-100 text-green-800 border-green-200">
+                Actif dans le panier
+              </Badge>
             </div>
           </CardHeader>
           
@@ -96,22 +93,16 @@ const PreconfiguredCartsView = () => {
                 </div>
               </div>
 
-              <div className="flex space-x-2 pt-3">
-                {!userCart.is_added_to_main_cart && (
-                  <Button
-                    onClick={() => addToMainCart(userCart.id)}
-                    disabled={isAddingToMain}
-                    className="flex-1 bg-orange-500 hover:bg-orange-600 text-white"
-                  >
-                    {isAddingToMain ? (
-                      <div className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full mr-2" />
-                    ) : (
-                      <ShoppingCart className="h-4 w-4 mr-2" />
-                    )}
-                    Ajouter au panier principal
-                  </Button>
-                )}
-                
+              <div className="bg-blue-50 p-3 rounded-lg border border-blue-200">
+                <p className="text-sm text-blue-800 font-medium">
+                  ✅ Ce panier est automatiquement inclus dans votre panier principal
+                </p>
+                <p className="text-xs text-blue-600 mt-1">
+                  Tous vos paniers sont pris en compte lors de la commande
+                </p>
+              </div>
+
+              <div className="flex justify-end pt-3">
                 <Button
                   onClick={() => removeUserCart(userCart.id)}
                   disabled={isRemoving}
@@ -123,6 +114,7 @@ const PreconfiguredCartsView = () => {
                   ) : (
                     <Trash2 className="h-4 w-4" />
                   )}
+                  <span className="ml-2">Supprimer</span>
                 </Button>
               </div>
             </div>

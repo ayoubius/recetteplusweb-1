@@ -60,7 +60,7 @@ const Cart = () => {
             </h1>
           </div>
           <p className="text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
-            Gérez vos achats et finalisez vos commandes
+            Tous vos paniers sont automatiquement combinés pour votre commande
           </p>
         </div>
 

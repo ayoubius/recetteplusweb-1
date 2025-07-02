@@ -1,3 +1,4 @@
+
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/SupabaseAuthContext';
@@ -77,6 +78,7 @@ export const useRecipeUserCarts = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['recipe-user-carts'] });
+      queryClient.invalidateQueries({ queryKey: ['main-cart'] });
       toast({
         title: "Panier recette créé",
         description: "Le panier recette a été créé avec succès."
@@ -92,25 +94,6 @@ export const useRecipeUserCarts = () => {
     },
   });
 
-  const addToMainCart = useMutation({
-    mutationFn: async (recipeCartId: string) => {
-      const { error } = await supabase
-        .from('recipe_user_carts')
-        .update({ is_added_to_main_cart: true })
-        .eq('id', recipeCartId);
-
-      if (error) throw error;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['recipe-user-carts'] });
-      queryClient.invalidateQueries({ queryKey: ['main-cart'] });
-      toast({
-        title: "Ajouté au panier principal",
-        description: "Le panier recette a été ajouté au panier principal."
-      });
-    },
-  });
-
   const removeRecipeCart = useMutation({
     mutationFn: async (recipeCartId: string) => {
       const { error } = await supabase
@@ -122,6 +105,7 @@ export const useRecipeUserCarts = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['recipe-user-carts'] });
+      queryClient.invalidateQueries({ queryKey: ['main-cart'] });
       toast({
         title: "Panier supprimé",
         description: "Le panier recette a été supprimé."
@@ -134,8 +118,6 @@ export const useRecipeUserCarts = () => {
     recipeCarts: query.data || [],
     createRecipeCart: createRecipeCart.mutate,
     isCreating: createRecipeCart.isPending,
-    addToMainCart: addToMainCart.mutate,
-    isAddingToMain: addToMainCart.isPending,
     removeRecipeCart: removeRecipeCart.mutate,
     isRemoving: removeRecipeCart.isPending,
   };
@@ -235,6 +217,7 @@ export const usePersonalCart = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['personal-cart-items'] });
+      queryClient.invalidateQueries({ queryKey: ['main-cart'] });
       toast({
         title: "Produit ajouté",
         description: "Le produit a été ajouté à votre panier personnel."
@@ -271,6 +254,7 @@ export const usePersonalCart = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['personal-cart-items'] });
+      queryClient.invalidateQueries({ queryKey: ['main-cart'] });
     },
   });
 
@@ -286,6 +270,7 @@ export const usePersonalCart = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['personal-cart-items'] });
+      queryClient.invalidateQueries({ queryKey: ['main-cart'] });
       toast({
         title: "Produit supprimé",
         description: "Le produit a été supprimé de votre panier."
@@ -306,58 +291,28 @@ export const usePersonalCart = () => {
   };
 };
 
-// Hook pour le panier principal (combinaison de tous les paniers)
+// Hook pour le panier principal (utilise la nouvelle vue)
 export const useMainCart = () => {
   const { currentUser } = useAuth();
-  const { personalCartItems } = usePersonalCart();
-  const { recipeCarts } = useRecipeUserCarts();
-  const { userPreconfiguredCarts } = usePreconfiguredCarts();
 
-  // Récupérer le panier principal de l'utilisateur
   const mainCartQuery = useQuery({
     queryKey: ['main-cart', currentUser?.id],
     queryFn: async () => {
-      if (!currentUser) return null;
+      if (!currentUser) return [];
 
       const { data, error } = await supabase
-        .from('user_carts')
+        .from('user_main_cart_view')
         .select('*')
-        .eq('user_id', currentUser.id)
-        .single();
+        .eq('user_id', currentUser.id);
 
-      if (error && error.code !== 'PGRST116') throw error;
-      return data;
+      if (error) throw error;
+      return data || [];
     },
     enabled: !!currentUser,
   });
 
-  // Combiner tous les items du panier
-  const cartItems = [
-    ...personalCartItems.map(item => ({
-      ...item,
-      source: 'personal' as const,
-      cartName: 'Panier personnel'
-    })),
-    ...recipeCarts.filter(cart => cart.is_added_to_main_cart).flatMap(cart => 
-      cart.recipe_cart_items?.map(item => ({
-        ...item,
-        source: 'recipe' as const,
-        recipeCart: cart,
-        cartName: cart.cart_name
-      })) || []
-    ),
-    ...userPreconfiguredCarts.filter(cart => cart.is_added_to_main_cart).map(cart => ({
-      id: cart.id,
-      source: 'preconfigured' as const,
-      cartName: cart.preconfigured_carts?.name || 'Panier préconfiguré',
-      preconfiguredCart: cart.preconfigured_carts,
-      items: cart.preconfigured_carts?.items || []
-    }))
-  ];
-
   return {
-    mainCart: mainCartQuery.data,
-    cartItems,
+    cartItems: mainCartQuery.data || [],
     isLoading: mainCartQuery.isLoading,
   };
 };
@@ -395,67 +350,14 @@ export const usePreconfiguredCarts = () => {
 
       if (userCartError) throw userCartError;
 
-      // Créer ou récupérer le panier personnel
-      let { data: personalCart, error: cartError } = await supabase
-        .from('personal_carts')
-        .select('*')
-        .eq('user_id', currentUser.id)
-        .single();
-
-      if (cartError && cartError.code === 'PGRST116') {
-        const { data, error } = await supabase
-          .from('personal_carts')
-          .insert({ user_id: currentUser.id })
-          .select()
-          .single();
-
-        if (error) throw error;
-        personalCart = data;
-      } else if (cartError) {
-        throw cartError;
-      }
-
-      // Ajouter les items du panier préconfiguré au panier personnel
-      const items = preconfiguredCart.items as Array<{productId: string, quantity: number}>;
-      
-      for (const item of items) {
-        // Vérifier si le produit existe déjà
-        const { data: existingItems } = await supabase
-          .from('personal_cart_items')
-          .select('*')
-          .eq('personal_cart_id', personalCart.id)
-          .eq('product_id', item.productId);
-
-        if (existingItems && existingItems.length > 0) {
-          // Mettre à jour la quantité
-          const { error } = await supabase
-            .from('personal_cart_items')
-            .update({ quantity: existingItems[0].quantity + item.quantity })
-            .eq('id', existingItems[0].id);
-
-          if (error) throw error;
-        } else {
-          // Ajouter un nouvel item
-          const { error } = await supabase
-            .from('personal_cart_items')
-            .insert({
-              personal_cart_id: personalCart.id,
-              product_id: item.productId,
-              quantity: item.quantity,
-            });
-
-          if (error) throw error;
-        }
-      }
-
       return { preconfiguredCart, userPreconfiguredCart };
     },
     onSuccess: (data) => {
-      queryClient.invalidateQueries({ queryKey: ['personal-cart-items'] });
       queryClient.invalidateQueries({ queryKey: ['user-preconfigured-carts'] });
+      queryClient.invalidateQueries({ queryKey: ['main-cart'] });
       toast({
         title: "Panier ajouté",
-        description: `Le panier "${data.preconfiguredCart.name}" a été ajouté à votre panier personnel.`
+        description: `Le panier "${data.preconfiguredCart.name}" a été ajouté à vos paniers.`
       });
     },
     onError: (error) => {
@@ -489,26 +391,6 @@ export const usePreconfiguredCarts = () => {
     enabled: !!currentUser,
   });
 
-  // Mutation pour ajouter un panier préconfiguré au panier principal
-  const addToMainCart = useMutation({
-    mutationFn: async (userCartId: string) => {
-      const { error } = await supabase
-        .from('user_preconfigured_carts')
-        .update({ is_added_to_main_cart: true })
-        .eq('id', userCartId);
-
-      if (error) throw error;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['user-preconfigured-carts'] });
-      queryClient.invalidateQueries({ queryKey: ['main-cart'] });
-      toast({
-        title: "Ajouté au panier principal",
-        description: "Le panier préconfiguré a été ajouté au panier principal."
-      });
-    },
-  });
-
   // Mutation pour supprimer un panier préconfiguré
   const removeUserCart = useMutation({
     mutationFn: async (userCartId: string) => {
@@ -521,6 +403,7 @@ export const usePreconfiguredCarts = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['user-preconfigured-carts'] });
+      queryClient.invalidateQueries({ queryKey: ['main-cart'] });
       toast({
         title: "Panier supprimé",
         description: "Le panier préconfiguré a été supprimé."
@@ -533,8 +416,6 @@ export const usePreconfiguredCarts = () => {
     isAdding: addPreconfiguredCartToPersonal.isPending,
     userPreconfiguredCarts: userPreconfiguredCartsQuery.data || [],
     isLoadingUserCarts: userPreconfiguredCartsQuery.isLoading,
-    addToMainCart: addToMainCart.mutate,
-    isAddingToMain: addToMainCart.isPending,
     removeUserCart: removeUserCart.mutate,
     isRemoving: removeUserCart.isPending,
   };
