@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -9,6 +8,7 @@ import { Star, ShoppingCart, Plus, Search, Filter } from 'lucide-react';
 import { useSupabaseProducts } from '@/hooks/useSupabaseProducts';
 import { useAddToCart } from '@/hooks/useAddToCart';
 import { formatCFA } from '@/lib/currency';
+import FeaturedCartsCarousel from '@/components/FeaturedCartsCarousel';
 
 const Products = () => {
   const { data: products = [], isLoading } = useSupabaseProducts();
@@ -77,6 +77,9 @@ const Products = () => {
             Découvrez notre sélection de produits frais et de qualité
           </p>
         </div>
+
+        {/* Paniers en vedette */}
+        <FeaturedCartsCarousel />
 
         {/* Filtres */}
         <Card className="mb-8">
