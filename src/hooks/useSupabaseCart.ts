@@ -371,6 +371,18 @@ export const usePreconfiguredCarts = () => {
 
       if (fetchError) throw fetchError;
 
+      // Créer une entrée dans user_preconfigured_carts
+      const { data: userPreconfiguredCart, error: userCartError } = await supabase
+        .from('user_preconfigured_carts')
+        .insert({
+          user_id: currentUser.id,
+          preconfigured_cart_id: cartId,
+        })
+        .select()
+        .single();
+
+      if (userCartError) throw userCartError;
+
       // Créer ou récupérer le panier personnel
       let { data: personalCart, error: cartError } = await supabase
         .from('personal_carts')
@@ -424,13 +436,14 @@ export const usePreconfiguredCarts = () => {
         }
       }
 
-      return preconfiguredCart;
+      return { preconfiguredCart, userPreconfiguredCart };
     },
-    onSuccess: (cart) => {
+    onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['personal-cart-items'] });
+      queryClient.invalidateQueries({ queryKey: ['user-preconfigured-carts'] });
       toast({
         title: "Panier ajouté",
-        description: `Le panier "${cart.name}" a été ajouté à votre panier personnel.`
+        description: `Le panier "${data.preconfiguredCart.name}" a été ajouté à votre panier personnel.`
       });
     },
     onError: (error) => {
@@ -443,8 +456,31 @@ export const usePreconfiguredCarts = () => {
     },
   });
 
+  // Hook pour récupérer les paniers préconfigurés de l'utilisateur
+  const userPreconfiguredCartsQuery = useQuery({
+    queryKey: ['user-preconfigured-carts', currentUser?.id],
+    queryFn: async () => {
+      if (!currentUser) return [];
+
+      const { data, error } = await supabase
+        .from('user_preconfigured_carts')
+        .select(`
+          *,
+          preconfigured_carts (*)
+        `)
+        .eq('user_id', currentUser.id)
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      return data || [];
+    },
+    enabled: !!currentUser,
+  });
+
   return {
     addPreconfiguredCartToPersonal: addPreconfiguredCartToPersonal.mutate,
     isAdding: addPreconfiguredCartToPersonal.isPending,
+    userPreconfiguredCarts: userPreconfiguredCartsQuery.data || [],
+    isLoadingUserCarts: userPreconfiguredCartsQuery.isLoading,
   };
 };
