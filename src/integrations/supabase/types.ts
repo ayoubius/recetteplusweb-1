@@ -1098,6 +1098,10 @@ export type Database = {
         Args: { lat1: number; lon1: number; lat2: number; lon2: number }
         Returns: number
       }
+      decrement_video_likes: {
+        Args: { video_id: string }
+        Returns: undefined
+      }
       delete_old_avatar: {
         Args: { user_id: string }
         Returns: undefined

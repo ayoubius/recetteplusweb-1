@@ -1,4 +1,3 @@
-
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/SupabaseAuthContext';
@@ -312,6 +311,7 @@ export const useMainCart = () => {
   const { currentUser } = useAuth();
   const { personalCartItems } = usePersonalCart();
   const { recipeCarts } = useRecipeUserCarts();
+  const { userPreconfiguredCarts } = usePreconfiguredCarts();
 
   // Récupérer le panier principal de l'utilisateur
   const mainCartQuery = useQuery({
@@ -333,14 +333,26 @@ export const useMainCart = () => {
 
   // Combiner tous les items du panier
   const cartItems = [
-    ...personalCartItems,
+    ...personalCartItems.map(item => ({
+      ...item,
+      source: 'personal' as const,
+      cartName: 'Panier personnel'
+    })),
     ...recipeCarts.filter(cart => cart.is_added_to_main_cart).flatMap(cart => 
       cart.recipe_cart_items?.map(item => ({
         ...item,
-        source: 'recipe',
-        recipeCart: cart
+        source: 'recipe' as const,
+        recipeCart: cart,
+        cartName: cart.cart_name
       })) || []
-    )
+    ),
+    ...userPreconfiguredCarts.filter(cart => cart.is_added_to_main_cart).map(cart => ({
+      id: cart.id,
+      source: 'preconfigured' as const,
+      cartName: cart.preconfigured_carts?.name || 'Panier préconfiguré',
+      preconfiguredCart: cart.preconfigured_carts,
+      items: cart.preconfigured_carts?.items || []
+    }))
   ];
 
   return {
@@ -477,10 +489,53 @@ export const usePreconfiguredCarts = () => {
     enabled: !!currentUser,
   });
 
+  // Mutation pour ajouter un panier préconfiguré au panier principal
+  const addToMainCart = useMutation({
+    mutationFn: async (userCartId: string) => {
+      const { error } = await supabase
+        .from('user_preconfigured_carts')
+        .update({ is_added_to_main_cart: true })
+        .eq('id', userCartId);
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['user-preconfigured-carts'] });
+      queryClient.invalidateQueries({ queryKey: ['main-cart'] });
+      toast({
+        title: "Ajouté au panier principal",
+        description: "Le panier préconfiguré a été ajouté au panier principal."
+      });
+    },
+  });
+
+  // Mutation pour supprimer un panier préconfiguré
+  const removeUserCart = useMutation({
+    mutationFn: async (userCartId: string) => {
+      const { error } = await supabase
+        .from('user_preconfigured_carts')
+        .delete()
+        .eq('id', userCartId);
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['user-preconfigured-carts'] });
+      toast({
+        title: "Panier supprimé",
+        description: "Le panier préconfiguré a été supprimé."
+      });
+    },
+  });
+
   return {
     addPreconfiguredCartToPersonal: addPreconfiguredCartToPersonal.mutate,
     isAdding: addPreconfiguredCartToPersonal.isPending,
     userPreconfiguredCarts: userPreconfiguredCartsQuery.data || [],
     isLoadingUserCarts: userPreconfiguredCartsQuery.isLoading,
+    addToMainCart: addToMainCart.mutate,
+    isAddingToMain: addToMainCart.isPending,
+    removeUserCart: removeUserCart.mutate,
+    isRemoving: removeUserCart.isPending,
   };
 };

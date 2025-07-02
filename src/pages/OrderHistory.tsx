@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -13,12 +14,12 @@ import {
   RefreshCw
 } from 'lucide-react';
 import { useAuth } from '@/contexts/SupabaseAuthContext';
-import { useOrders } from '@/hooks/useOrders';
+import { useUserOrders } from '@/hooks/useOrders';
 import { formatCFA } from '@/lib/currency';
 
 const OrderHistory = () => {
   const { currentUser } = useAuth();
-  const { data: orders = [], isLoading } = useOrders();
+  const { data: orders = [], isLoading } = useUserOrders(currentUser?.id);
 
   if (!currentUser) {
     return (
@@ -109,6 +110,11 @@ const OrderHistory = () => {
           <p className="text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
             Suivez l'état de vos commandes et votre historique d'achats
           </p>
+          {orders.length > 0 && (
+            <Badge variant="secondary" className="mt-2">
+              {orders.length} commande{orders.length > 1 ? 's' : ''}
+            </Badge>
+          )}
         </div>
 
         {/* Orders List */}
