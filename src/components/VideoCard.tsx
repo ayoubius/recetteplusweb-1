@@ -42,7 +42,7 @@ const VideoCard: React.FC<VideoCardProps> = ({
   };
 
   const handleClick = () => {
-    navigate(`/video/${id}`);
+    navigate(`/videos/${id}`);
   };
 
   return (

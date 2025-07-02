@@ -34,6 +34,7 @@ import OrderManagement from '@/pages/admin/OrderManagement';
 import DeliveryManagement from '@/pages/admin/DeliveryManagement';
 import NewsletterManagement from '@/pages/admin/NewsletterManagement';
 import DeliveryDashboard from '@/pages/DeliveryDashboard';
+import DownloadApp from '@/pages/DownloadApp';
 import ProtectedRoute from '@/components/ProtectedRoute';
 import AdminLayout from '@/components/AdminLayout';
 
@@ -55,6 +56,7 @@ function App() {
                 <Route path="/recettes/:id" element={<RecipeDetail />} />
                 <Route path="/videos" element={<Videos />} />
                 <Route path="/videos/:id" element={<VideoDetail />} />
+                <Route path="/video/:id" element={<VideoDetail />} />
                 <Route path="/panier" element={<Cart />} />
                 <Route path="/cart" element={<Cart />} />
                 <Route path="/paniers-preconfigures" element={<PreconfiguredCarts />} />
@@ -62,6 +64,7 @@ function App() {
                 <Route path="/favoris" element={<Favorites />} />
                 <Route path="/commandes" element={<OrderHistory />} />
                 <Route path="/about" element={<About />} />
+                <Route path="/download-app" element={<DownloadApp />} />
                 <Route path="/login" element={<Login />} />
                 <Route path="/signup" element={<Signup />} />
                 <Route path="/forgot-password" element={<ForgotPassword />} />
