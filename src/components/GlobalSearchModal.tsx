@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
@@ -104,13 +103,13 @@ const GlobalSearchModal = ({ open, onOpenChange }: GlobalSearchModalProps) => {
   const handleResultClick = (result: SearchResult) => {
     switch (result.type) {
       case 'product':
-        navigate(`/produit/${result.id}`);
+        navigate(`/produits/${result.id}`);
         break;
       case 'recipe':
-        navigate(`/recette/${result.id}`);
+        navigate(`/recettes/${result.id}`);
         break;
       case 'video':
-        navigate(`/video/${result.id}`);
+        navigate(`/videos/${result.id}`);
         break;
     }
     onOpenChange(false);
@@ -145,7 +144,7 @@ const GlobalSearchModal = ({ open, onOpenChange }: GlobalSearchModalProps) => {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-4xl max-h-[80vh] p-0 overflow-hidden">
-        <DialogHeader className="p-6 pb-4 border-b">
+        <DialogHeader className="p-4 sm:p-6 pb-4 border-b">
           <DialogTitle className="flex items-center space-x-2">
             <Search className="h-5 w-5 text-orange-500" />
             <span>Recherche globale</span>
@@ -153,7 +152,7 @@ const GlobalSearchModal = ({ open, onOpenChange }: GlobalSearchModalProps) => {
         </DialogHeader>
 
         {/* Search Input */}
-        <div className="px-6 py-4">
+        <div className="px-4 sm:px-6 py-4">
           <div className="relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
             <Input
@@ -161,7 +160,7 @@ const GlobalSearchModal = ({ open, onOpenChange }: GlobalSearchModalProps) => {
               placeholder="Rechercher des produits, recettes, vidéos..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10 pr-4 h-12 text-lg border-2 focus:border-orange-500"
+              className="pl-10 pr-4 h-10 sm:h-12 text-base sm:text-lg border-2 focus:border-orange-500"
             />
             {searchTerm && (
               <Button
@@ -177,14 +176,14 @@ const GlobalSearchModal = ({ open, onOpenChange }: GlobalSearchModalProps) => {
         </div>
 
         {/* Tabs */}
-        <div className="px-6">
-          <div className="flex space-x-1 bg-gray-100 p-1 rounded-lg">
+        <div className="px-4 sm:px-6">
+          <div className="flex space-x-1 bg-gray-100 p-1 rounded-lg overflow-x-auto">
             {tabs.map((tab) => (
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
                 className={cn(
-                  "flex-1 px-4 py-2 text-sm font-medium rounded-md transition-colors",
+                  "flex-shrink-0 px-3 sm:px-4 py-2 text-xs sm:text-sm font-medium rounded-md transition-colors whitespace-nowrap",
                   activeTab === tab.id
                     ? "bg-white text-orange-600 shadow-sm"
                     : "text-gray-600 hover:text-gray-900"
@@ -197,7 +196,7 @@ const GlobalSearchModal = ({ open, onOpenChange }: GlobalSearchModalProps) => {
         </div>
 
         {/* Results */}
-        <div className="flex-1 overflow-y-auto px-6 pb-6">
+        <div className="flex-1 overflow-y-auto px-4 sm:px-6 pb-4 sm:pb-6">
           {isSearching ? (
             <div className="flex items-center justify-center py-12">
               <div className="flex items-center space-x-2 text-gray-500">
@@ -211,10 +210,10 @@ const GlobalSearchModal = ({ open, onOpenChange }: GlobalSearchModalProps) => {
                 <div
                   key={`${result.type}-${result.id}`}
                   onClick={() => handleResultClick(result)}
-                  className="flex items-center space-x-4 p-4 rounded-lg hover:bg-gray-50 cursor-pointer transition-colors border border-transparent hover:border-gray-200"
+                  className="flex items-center space-x-3 sm:space-x-4 p-3 sm:p-4 rounded-lg hover:bg-gray-50 cursor-pointer transition-colors border border-transparent hover:border-gray-200"
                 >
                   {/* Image */}
-                  <div className="w-16 h-16 rounded-lg overflow-hidden bg-gray-100 flex-shrink-0">
+                  <div className="w-12 h-12 sm:w-16 sm:h-16 rounded-lg overflow-hidden bg-gray-100 flex-shrink-0">
                     {result.image ? (
                       <img
                         src={result.image}
@@ -231,7 +230,7 @@ const GlobalSearchModal = ({ open, onOpenChange }: GlobalSearchModalProps) => {
                   {/* Content */}
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center space-x-2 mb-1">
-                      <h3 className="font-medium text-gray-900 truncate">
+                      <h3 className="font-medium text-gray-900 truncate text-sm sm:text-base">
                         {result.title}
                       </h3>
                       <Badge className={cn("text-xs", getTypeColor(result.type))}>
@@ -240,11 +239,11 @@ const GlobalSearchModal = ({ open, onOpenChange }: GlobalSearchModalProps) => {
                       </Badge>
                     </div>
                     
-                    <p className="text-sm text-gray-600 truncate mb-2">
+                    <p className="text-xs sm:text-sm text-gray-600 truncate mb-2">
                       {result.description}
                     </p>
 
-                    <div className="flex items-center space-x-4 text-xs text-gray-500">
+                    <div className="flex items-center space-x-2 sm:space-x-4 text-xs text-gray-500">
                       {result.category && (
                         <span className="flex items-center space-x-1">
                           <span>Catégorie:</span>
@@ -276,7 +275,7 @@ const GlobalSearchModal = ({ open, onOpenChange }: GlobalSearchModalProps) => {
 
                   {/* Arrow */}
                   <div className="flex-shrink-0">
-                    <div className="w-6 h-6 rounded-full bg-gray-100 flex items-center justify-center">
+                    <div className="w-5 h-5 sm:w-6 sm:h-6 rounded-full bg-gray-100 flex items-center justify-center">
                       <svg className="w-3 h-3 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                       </svg>
@@ -324,9 +323,10 @@ const GlobalSearchModal = ({ open, onOpenChange }: GlobalSearchModalProps) => {
         </div>
 
         {/* Footer */}
-        <div className="border-t px-6 py-3 bg-gray-50">
+        <div className="border-t px-4 sm:px-6 py-3 bg-gray-50">
           <div className="flex items-center justify-between text-xs text-gray-500">
-            <span>Utilisez ↑↓ pour naviguer, Entrée pour sélectionner</span>
+            <span className="hidden sm:inline">Utilisez ↑↓ pour naviguer, Entrée pour sélectionner</span>
+            <span className="sm:hidden">Navigation au toucher</span>
             <span>{filteredResults.length} résultat{filteredResults.length > 1 ? 's' : ''}</span>
           </div>
         </div>
