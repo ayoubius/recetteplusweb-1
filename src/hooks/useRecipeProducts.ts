@@ -12,11 +12,27 @@ export const useRecipeProducts = (recipeId: string) => {
         .eq('id', recipeId)
         .single();
 
-      if (!recipe?.ingredients || !Array.isArray(recipe.ingredients)) {
+      if (!recipe?.ingredients) {
         return [];
       }
 
-      const productIds = recipe.ingredients
+      // S'assurer que ingredients est un tableau
+      let ingredients: any[] = [];
+      if (Array.isArray(recipe.ingredients)) {
+        ingredients = recipe.ingredients;
+      } else if (typeof recipe.ingredients === 'string') {
+        try {
+          const parsed = JSON.parse(recipe.ingredients);
+          ingredients = Array.isArray(parsed) ? parsed : [];
+        } catch {
+          return [];
+        }
+      } else if (typeof recipe.ingredients === 'object' && recipe.ingredients !== null) {
+        // Si c'est un objet, essayer de l'utiliser comme tableau
+        ingredients = Array.isArray((recipe.ingredients as any)) ? (recipe.ingredients as any) : [];
+      }
+
+      const productIds = ingredients
         .map((ingredient: any) => ingredient.product_id)
         .filter(Boolean);
 
@@ -28,7 +44,7 @@ export const useRecipeProducts = (recipeId: string) => {
         .in('id', productIds);
 
       return products?.map(product => {
-        const ingredient = recipe.ingredients.find((ing: any) => ing.product_id === product.id);
+        const ingredient = ingredients.find((ing: any) => ing.product_id === product.id);
         return {
           ...product,
           recipeQuantity: ingredient?.quantity || 1,
