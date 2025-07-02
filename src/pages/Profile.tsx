@@ -12,6 +12,7 @@ import { useUserOrders } from '@/hooks/useOrders';
 import { supabase } from '@/integrations/supabase/client';
 import { User, Settings, MapPin, Heart, ShoppingBag, Upload, Camera, Package, Eye, Clock, CheckCircle, Truck } from 'lucide-react';
 import { formatCFA } from '@/lib/currency';
+import OrderDetailsDialog from '@/components/order/OrderDetailsDialog';
 
 const Profile = () => {
   const { currentUser } = useAuth();
@@ -19,6 +20,8 @@ const Profile = () => {
   const { data: userOrders = [], isLoading: ordersLoading } = useUserOrders(currentUser?.id);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [loading, setLoading] = useState(false);
+  const [selectedOrder, setSelectedOrder] = useState<any>(null);
+  const [isOrderDetailsOpen, setIsOrderDetailsOpen] = useState(false);
 
   const [profile, setProfile] = useState({
     display_name: currentUser?.user_metadata?.display_name || '',
@@ -147,6 +150,11 @@ const Profile = () => {
       default:
         return 'outline';
     }
+  };
+
+  const handleViewOrderDetails = (order: any) => {
+    setSelectedOrder(order);
+    setIsOrderDetailsOpen(true);
   };
 
   return (
@@ -362,7 +370,11 @@ const Profile = () => {
                           </div>
 
                           <div className="flex justify-end">
-                            <Button variant="outline" size="sm">
+                            <Button 
+                              variant="outline" 
+                              size="sm"
+                              onClick={() => handleViewOrderDetails(order)}
+                            >
                               <Eye className="h-4 w-4 mr-1" />
                               Voir détails
                             </Button>
@@ -452,6 +464,15 @@ const Profile = () => {
           </TabsContent>
         </Tabs>
       </div>
+
+      <OrderDetailsDialog
+        order={selectedOrder}
+        isOpen={isOrderDetailsOpen}
+        onClose={() => {
+          setIsOrderDetailsOpen(false);
+          setSelectedOrder(null);
+        }}
+      />
     </div>
   );
 };

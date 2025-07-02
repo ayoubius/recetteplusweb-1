@@ -1,3 +1,4 @@
+
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/SupabaseAuthContext';
@@ -291,7 +292,7 @@ export const usePersonalCart = () => {
   };
 };
 
-// Hook pour le panier principal - utilise une requête RPC pour récupérer la vue
+// Hook pour le panier principal
 export const useMainCart = () => {
   const { currentUser } = useAuth();
 
@@ -300,18 +301,35 @@ export const useMainCart = () => {
     queryFn: async (): Promise<MainCartItem[]> => {
       if (!currentUser) return [];
 
-      // Utiliser une requête RPC pour récupérer les données de la vue
-      const { data, error } = await supabase.rpc('get_user_main_cart_data', {
-        user_uuid: currentUser.id
-      });
+      try {
+        // Utiliser une requête directe pour récupérer les données
+        const { data, error } = await supabase
+          .from('personal_carts')
+          .select(`
+            id,
+            user_id,
+            personal_cart_items (
+              id,
+              product_id,
+              quantity,
+              products (
+                name,
+                price
+              )
+            )
+          `)
+          .eq('user_id', currentUser.id);
 
-      if (error) {
-        console.error('Error fetching main cart:', error);
-        // Fallback: construire les données manuellement
+        if (error) {
+          console.error('Error fetching personal cart:', error);
+        }
+
+        // Construire les données manuellement pour le moment
         return await buildMainCartManually(currentUser.id);
+      } catch (error) {
+        console.error('Error in main cart query:', error);
+        return [];
       }
-
-      return data || [];
     },
     enabled: !!currentUser,
   });
@@ -322,7 +340,7 @@ export const useMainCart = () => {
   };
 };
 
-// Fonction de fallback pour construire le panier principal manuellement
+// Fonction pour construire le panier principal manuellement
 async function buildMainCartManually(userId: string): Promise<MainCartItem[]> {
   const cartItems: MainCartItem[] = [];
 
