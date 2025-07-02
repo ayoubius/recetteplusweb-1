@@ -81,10 +81,12 @@ const RecipeDetail = () => {
                 />
                 {recipe.video_id && (
                   <div className="absolute inset-0 bg-black bg-opacity-30 flex items-center justify-center">
-                    <Button size="lg" className="bg-white text-black hover:bg-gray-100">
-                      <Play className="h-6 w-6 mr-2" />
-                      Voir la vidéo
-                    </Button>
+                    <Link to={`/videos/${recipe.video_id}`}>
+                      <Button size="lg" className="bg-white text-black hover:bg-gray-100">
+                        <Play className="h-6 w-6 mr-2" />
+                        Voir la vidéo
+                      </Button>
+                    </Link>
                   </div>
                 )}
               </div>

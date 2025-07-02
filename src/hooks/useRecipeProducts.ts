@@ -32,8 +32,9 @@ export const useRecipeProducts = (recipeId: string) => {
         ingredients = Array.isArray((recipe.ingredients as any)) ? (recipe.ingredients as any) : [];
       }
 
+      // Gérer les deux formats possibles : productId et product_id
       const productIds = ingredients
-        .map((ingredient: any) => ingredient.product_id)
+        .map((ingredient: any) => ingredient.productId || ingredient.product_id)
         .filter(Boolean);
 
       if (productIds.length === 0) return [];
@@ -44,7 +45,9 @@ export const useRecipeProducts = (recipeId: string) => {
         .in('id', productIds);
 
       return products?.map(product => {
-        const ingredient = ingredients.find((ing: any) => ing.product_id === product.id);
+        const ingredient = ingredients.find((ing: any) => 
+          (ing.productId || ing.product_id) === product.id
+        );
         return {
           ...product,
           recipeQuantity: ingredient?.quantity || 1,

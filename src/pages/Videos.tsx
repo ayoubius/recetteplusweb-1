@@ -149,7 +149,9 @@ const Videos = () => {
         <div className="flex flex-wrap gap-3 mb-8 justify-center animate-fade-in">
           <Badge 
             variant={selectedCategory === 'all' ? 'default' : 'outline'} 
-            className="cursor-pointer hover:bg-orange-500 hover:text-white transition-all duration-300 px-4 py-2 text-sm font-semibold bg-orange-500 text-white"
+            className={`cursor-pointer hover:bg-orange-500 hover:text-white transition-all duration-300 px-4 py-2 text-sm font-semibold ${
+              selectedCategory === 'all' ? 'bg-orange-500 text-white' : ''
+            }`}
             onClick={() => setSelectedCategory('all')}
           >
             Toutes ({videos.length})
@@ -160,9 +162,10 @@ const Videos = () => {
               <Badge 
                 key={category}
                 variant={selectedCategory === category ? 'default' : 'outline'}
-                className="cursor-pointer hover:bg-orange-500 hover:text-white transition-all duration-300 px-4 py-2 text-sm font-semibold"
+                className={`cursor-pointer hover:bg-orange-500 hover:text-white transition-all duration-300 px-4 py-2 text-sm font-semibold ${
+                  selectedCategory === category ? 'bg-orange-500 text-white' : ''
+                }`}
                 onClick={() => setSelectedCategory(category)}
-                style={selectedCategory === category ? { backgroundColor: '#F97316', color: 'white' } : {}}
               >
                 {category} ({count})
               </Badge>
