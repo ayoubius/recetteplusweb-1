@@ -3,79 +3,108 @@ import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Separator } from '@/components/ui/separator';
-import { ShoppingCart, Package, ChefHat, User, Settings } from 'lucide-react';
+import { 
+  ShoppingCart, 
+  Package, 
+  Trash2, 
+  Plus, 
+  Minus,
+  AlertCircle,
+  ArrowRight
+} from 'lucide-react';
 import { useMainCart } from '@/hooks/useSupabaseCart';
 import { formatCFA, DELIVERY_FEE } from '@/lib/currency';
-import { useNavigate } from 'react-router-dom';
+import { useToast } from '@/hooks/use-toast';
 import { MainCartItem } from '@/types/cart';
 import SimpleOrderForm from './SimpleOrderForm';
+import OrderSuccess from './OrderSuccess';
 
 const MainCartView = () => {
   const { cartItems, isLoading } = useMainCart();
-  const navigate = useNavigate();
+  const { toast } = useToast();
   const [showOrderForm, setShowOrderForm] = useState(false);
+  const [showOrderSuccess, setShowOrderSuccess] = useState(false);
+  const [completedOrderId, setCompletedOrderId] = useState<string>('');
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center h-32">
+      <div className="flex items-center justify-center p-8">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-500"></div>
+        <span className="ml-2">Chargement du panier...</span>
       </div>
     );
   }
 
+  if (!cartItems || cartItems.length === 0) {
+    return (
+      <Card className="text-center py-12">
+        <CardContent>
+          <ShoppingCart className="h-16 w-16 text-gray-300 mx-auto mb-4" />
+          <h3 className="text-xl font-semibold text-gray-600 mb-2">Votre panier est vide</h3>
+          <p className="text-gray-500 mb-6">
+            Ajoutez des produits à votre panier pour commencer vos achats
+          </p>
+          <Button 
+            onClick={() => window.location.href = '/produits'} 
+            className="bg-orange-500 hover:bg-orange-600"
+          >
+            <Package className="h-4 w-4 mr-2" />
+            Découvrir nos produits
+          </Button>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  // Calculer le sous-total
+  const subtotal = cartItems.reduce((total, item) => total + (item.total_price || 0), 0);
+  const total = subtotal + DELIVERY_FEE;
+
   // Grouper les items par type de panier
-  const groupedItems = cartItems.reduce((acc, item) => {
-    if (!acc[item.cart_type]) {
-      acc[item.cart_type] = [];
-    }
-    acc[item.cart_type].push(item);
-    return acc;
-  }, {} as Record<string, MainCartItem[]>);
+  const personalItems = cartItems.filter(item => item.cart_type === 'personal');
+  const recipeItems = cartItems.filter(item => item.cart_type === 'recipe');
+  const preconfiguredItems = cartItems.filter(item => item.cart_type === 'preconfigured');
 
-  const subtotal = cartItems.reduce((sum, item) => sum + (item.total_price || 0), 0);
-
-  const handleOrderComplete = () => {
+  const handleOrderComplete = (orderId?: string) => {
     setShowOrderForm(false);
-    navigate('/profile');
+    setShowOrderSuccess(true);
+    if (orderId) {
+      setCompletedOrderId(orderId);
+    }
+    
+    // Actualiser la page après un délai pour s'assurer que les paniers sont vides
+    setTimeout(() => {
+      window.location.reload();
+    }, 2000);
   };
 
-  const getCartIcon = (cartType: string) => {
-    switch (cartType) {
-      case 'personal':
-        return <User className="h-5 w-5" />;
-      case 'recipe':
-        return <ChefHat className="h-5 w-5" />;
-      case 'preconfigured':
-        return <Settings className="h-5 w-5" />;
-      default:
-        return <Package className="h-5 w-5" />;
-    }
+  const handleContinueShopping = () => {
+    setShowOrderSuccess(false);
+    window.location.href = '/produits';
   };
 
-  const getCartTypeLabel = (cartType: string) => {
-    switch (cartType) {
-      case 'personal':
-        return 'Personnel';
-      case 'recipe':
-        return 'Recette';
-      case 'preconfigured':
-        return 'Préconfiguré';
-      default:
-        return 'Autre';
-    }
-  };
+  if (showOrderSuccess) {
+    return (
+      <OrderSuccess 
+        orderId={completedOrderId}
+        onContinueShopping={handleContinueShopping}
+      />
+    );
+  }
 
   if (showOrderForm) {
     return (
-      <div className="space-y-4">
-        <Button
-          variant="outline"
-          onClick={() => setShowOrderForm(false)}
-          className="mb-4"
-        >
-          ← Retour au panier
-        </Button>
+      <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <h2 className="text-2xl font-bold">Finaliser la commande</h2>
+          <Button 
+            variant="outline" 
+            onClick={() => setShowOrderForm(false)}
+          >
+            Retour au panier
+          </Button>
+        </div>
+        
         <SimpleOrderForm
           cartItems={cartItems}
           subtotal={subtotal}
@@ -85,133 +114,159 @@ const MainCartView = () => {
     );
   }
 
-  if (cartItems.length === 0) {
-    return (
-      <Card>
-        <CardContent className="pt-8 pb-8 sm:pt-12 sm:pb-12">
-          <div className="text-center">
-            <ShoppingCart className="h-12 w-12 sm:h-16 sm:w-16 mx-auto text-gray-400 mb-4" />
-            <h3 className="text-lg sm:text-xl font-semibold text-gray-900 mb-2">Votre panier est vide</h3>
-            <p className="text-sm sm:text-base text-gray-600 mb-4 sm:mb-6 px-4">
-              Ajoutez des produits, créez des paniers recette ou ajoutez des paniers préconfigurés pour commencer
-            </p>
-            <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center px-4">
-              <Button 
-                onClick={() => navigate('/produits')}
-                className="bg-orange-500 hover:bg-orange-600 w-full sm:w-auto"
-              >
-                Voir les produits
-              </Button>
-              <Button 
-                onClick={() => navigate('/recettes')}
-                variant="outline"
-                className="w-full sm:w-auto"
-              >
-                Voir les recettes
-              </Button>
-              <Button 
-                onClick={() => navigate('/paniers-preconfigures')}
-                variant="outline"
-                className="w-full sm:w-auto"
-              >
-                Paniers préconfigurés
-              </Button>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-    );
-  }
-
   return (
-    <div className="space-y-4 sm:space-y-6">
-      {/* Affichage des paniers groupés par type */}
-      {Object.entries(groupedItems).map(([cartType, items]) => (
-        <Card key={cartType} className="shadow-lg">
-          <CardHeader className="pb-3 sm:pb-4">
-            <CardTitle className="flex items-center text-lg sm:text-xl">
-              {getCartIcon(cartType)}
-              <span className="ml-2">
-                Panier {getCartTypeLabel(cartType)} ({items.length} {items.length > 1 ? 'articles' : 'article'})
-              </span>
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3 sm:space-y-4">
-            {items.map((item) => (
-              <div key={`${item.cart_type}-${item.item_id}`} className="flex items-center justify-between p-4 border rounded-lg bg-gray-50">
-                <div className="flex-1">
-                  <div className="flex items-center gap-3">
-                    <Badge variant="outline" className="text-xs">
-                      {item.cart_name}
-                    </Badge>
-                    {cartType === 'preconfigured' && (
-                      <Badge className="bg-blue-100 text-blue-800 text-xs">
-                        Panier complet
-                      </Badge>
-                    )}
-                  </div>
-                  <h3 className="font-medium mt-2">{item.product_name}</h3>
-                  {cartType !== 'preconfigured' && (
-                    <p className="text-sm text-gray-600">
-                      Quantité: {item.quantity} × {formatCFA(item.unit_price || 0)}
-                    </p>
-                  )}
-                </div>
-                <div className="text-right">
-                  <p className="text-lg font-semibold text-orange-600">
-                    {formatCFA(item.total_price || 0)}
-                  </p>
-                </div>
-              </div>
-            ))}
-          </CardContent>
-        </Card>
-      ))}
-
-      {/* Résumé de commande */}
-      <Card className="shadow-xl border-2 border-orange-200">
-        <CardHeader className="pb-3 sm:pb-6 bg-gradient-to-r from-orange-50 to-red-50">
-          <CardTitle className="text-lg sm:text-xl flex items-center">
-            <Package className="h-6 w-6 mr-2 text-orange-600" />
-            Résumé de commande
+    <div className="space-y-6">
+      {/* En-tête du panier */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center justify-between">
+            <div className="flex items-center">
+              <ShoppingCart className="h-5 w-5 mr-2" />
+              Panier principal
+            </div>
+            <Badge variant="secondary" className="text-lg px-3 py-1">
+              {cartItems.length} article{cartItems.length > 1 ? 's' : ''}
+            </Badge>
           </CardTitle>
         </CardHeader>
-        <CardContent className="space-y-3 sm:space-y-4 pt-6">
-          <div className="space-y-2">
-            <div className="flex justify-between text-sm sm:text-base">
-              <span>Sous-total ({cartItems.length} articles)</span>
-              <span className="font-medium">{formatCFA(subtotal)}</span>
-            </div>
-            <div className="flex justify-between text-sm sm:text-base">
-              <span>Frais de livraison</span>
-              <span className="font-medium text-orange-600">{formatCFA(DELIVERY_FEE)}</span>
-            </div>
-          </div>
-          
-          <Separator />
-          
-          <div className="flex justify-between font-bold text-lg sm:text-xl">
-            <span>Total</span>
-            <span className="text-orange-600">{formatCFA(subtotal + DELIVERY_FEE)}</span>
-          </div>
+      </Card>
 
-          <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
-            <p className="text-sm text-blue-800 font-medium flex items-center">
-              💰 Paiement à la livraison
-            </p>
-            <p className="text-xs text-blue-600 mt-1">
-              Vous payerez en espèces lors de la réception de votre commande
-            </p>
-          </div>
+      {/* Items du panier groupés par type */}
+      <div className="space-y-4">
+        {/* Panier personnel */}
+        {personalItems.length > 0 && (
+          <Card>
+            <CardHeader className="pb-3">
+              <CardTitle className="text-lg flex items-center">
+                <Package className="h-4 w-4 mr-2 text-blue-500" />
+                Panier Personnel
+                <Badge variant="outline" className="ml-2">
+                  {personalItems.length} article{personalItems.length > 1 ? 's' : ''}
+                </Badge>
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-3">
+                {personalItems.map((item) => (
+                  <div key={`personal-${item.item_id}`} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                    <div className="flex-1">
+                      <h4 className="font-medium">{item.product_name}</h4>
+                      <p className="text-sm text-gray-600">
+                        {item.quantity} × {formatCFA(item.unit_price)} = {formatCFA(item.total_price)}
+                      </p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        )}
 
-          <Button 
-            onClick={() => setShowOrderForm(true)}
-            className="w-full bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white text-sm sm:text-base py-3 sm:py-4 font-semibold shadow-lg"
-            disabled={subtotal === 0}
-          >
-            <Package className="h-5 w-5 mr-2" />
-            Passer commande ({formatCFA(subtotal + DELIVERY_FEE)})
-          </Button>
+        {/* Paniers recettes */}
+        {recipeItems.length > 0 && (
+          <Card>
+            <CardHeader className="pb-3">
+              <CardTitle className="text-lg flex items-center">
+                <Package className="h-4 w-4 mr-2 text-green-500" />
+                Paniers Recettes
+                <Badge variant="outline" className="ml-2">
+                  {recipeItems.length} article{recipeItems.length > 1 ? 's' : ''}
+                </Badge>
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-3">
+                {recipeItems.map((item) => (
+                  <div key={`recipe-${item.item_id}`} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                    <div className="flex-1">
+                      <h4 className="font-medium">{item.product_name}</h4>
+                      <p className="text-xs text-gray-500">De: {item.cart_name}</p>
+                      <p className="text-sm text-gray-600">
+                        {item.quantity} × {formatCFA(item.unit_price)} = {formatCFA(item.total_price)}
+                      </p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Paniers préconfigurés */}
+        {preconfiguredItems.length > 0 && (
+          <Card>
+            <CardHeader className="pb-3">
+              <CardTitle className="text-lg flex items-center">
+                <Package className="h-4 w-4 mr-2 text-purple-500" />
+                Paniers Préconfigurés
+                <Badge variant="outline" className="ml-2">
+                  {preconfiguredItems.length} panier{preconfiguredItems.length > 1 ? 's' : ''}
+                </Badge>
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-3">
+                {preconfiguredItems.map((item) => (
+                  <div key={`preconfigured-${item.item_id}`} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                    <div className="flex-1">
+                      <h4 className="font-medium">{item.product_name}</h4>
+                      <p className="text-sm text-gray-600">
+                        Panier complet - {formatCFA(item.total_price)}
+                      </p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        )}
+      </div>
+
+      {/* Résumé et commande */}
+      <Card>
+        <CardContent className="p-6">
+          <div className="space-y-4">
+            {/* Résumé des prix */}
+            <div className="bg-gray-50 p-4 rounded-lg space-y-2">
+              <div className="flex justify-between text-sm">
+                <span>Sous-total ({cartItems.length} articles)</span>
+                <span>{formatCFA(subtotal)}</span>
+              </div>
+              <div className="flex justify-between text-sm">
+                <span>Frais de livraison</span>
+                <span>{formatCFA(DELIVERY_FEE)}</span>
+              </div>
+              <div className="border-t pt-2 flex justify-between font-bold text-lg">
+                <span>Total</span>
+                <span className="text-orange-500">{formatCFA(total)}</span>
+              </div>
+            </div>
+
+            {/* Informations de livraison */}
+            <div className="bg-blue-50 p-4 rounded-lg">
+              <div className="flex items-start space-x-2">
+                <AlertCircle className="h-5 w-5 text-blue-500 mt-0.5" />
+                <div className="text-sm text-blue-800">
+                  <p className="font-medium mb-1">Informations de livraison :</p>
+                  <ul className="space-y-1">
+                    <li>• Livraison gratuite à partir de 10 000 FCFA</li>
+                    <li>• Temps de livraison : 30-60 minutes</li>
+                    <li>• Paiement à la livraison ou Orange Money (bientôt)</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+
+            {/* Bouton de commande */}
+            <Button
+              onClick={() => setShowOrderForm(true)}
+              className="w-full bg-orange-500 hover:bg-orange-600 text-white py-3 text-lg"
+              size="lg"
+            >
+              <ArrowRight className="h-5 w-5 mr-2" />
+              Commander - {formatCFA(total)}
+            </Button>
+          </div>
         </CardContent>
       </Card>
     </div>

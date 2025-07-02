@@ -4,7 +4,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
-import { Package, CreditCard } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import { Package, CreditCard, Smartphone, MapPin } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/SupabaseAuthContext';
@@ -28,6 +29,7 @@ const SimpleOrderForm: React.FC<SimpleOrderFormProps> = ({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [location, setLocation] = useState<{ latitude: number; longitude: number } | null>(null);
   const [notes, setNotes] = useState('');
+  const [paymentMethod, setPaymentMethod] = useState<'cash' | 'orange_money'>('cash');
 
   const total = subtotal + DELIVERY_FEE;
 
@@ -40,10 +42,11 @@ const SimpleOrderForm: React.FC<SimpleOrderFormProps> = ({
       const qrData = JSON.stringify({
         orderId: orderId,
         timestamp: new Date().toISOString(),
-        amount: total
+        amount: total,
+        paymentMethod
       });
       
-      const qrCodeDataURL = await QRCode.toDataURL(qrData, {
+      return await QRCode.toDataURL(qrData, {
         width: 200,
         margin: 2,
         color: {
@@ -51,28 +54,30 @@ const SimpleOrderForm: React.FC<SimpleOrderFormProps> = ({
           light: '#FFFFFF'
         }
       });
-      
-      return qrCodeDataURL;
     } catch (error) {
-      console.error('Error generating QR code:', error);
+      console.error('Erreur génération QR code:', error);
       return '';
     }
   };
 
   const clearAllCarts = async () => {
     try {
+      console.log('Nettoyage des paniers...');
+      
       // Nettoyer le panier personnel
       const { data: personalCart } = await supabase
         .from('personal_carts')
         .select('id')
         .eq('user_id', currentUser?.id)
-        .single();
+        .maybeSingle();
 
       if (personalCart) {
         await supabase
           .from('personal_cart_items')
           .delete()
           .eq('personal_cart_id', personalCart.id);
+        
+        console.log('Panier personnel nettoyé');
       }
 
       // Nettoyer les paniers recettes
@@ -84,17 +89,17 @@ const SimpleOrderForm: React.FC<SimpleOrderFormProps> = ({
       if (recipeCarts && recipeCarts.length > 0) {
         const recipeCartIds = recipeCarts.map(cart => cart.id);
         
-        // Supprimer les items des paniers recettes
         await supabase
           .from('recipe_cart_items')
           .delete()
           .in('recipe_cart_id', recipeCartIds);
 
-        // Supprimer les paniers recettes
         await supabase
           .from('recipe_user_carts')
           .delete()
           .in('id', recipeCartIds);
+        
+        console.log('Paniers recettes nettoyés');
       }
 
       // Nettoyer les paniers préconfigurés
@@ -102,9 +107,12 @@ const SimpleOrderForm: React.FC<SimpleOrderFormProps> = ({
         .from('user_preconfigured_carts')
         .delete()
         .eq('user_id', currentUser?.id);
+      
+      console.log('Paniers préconfigurés nettoyés');
+      console.log('Tous les paniers ont été nettoyés avec succès');
 
     } catch (error) {
-      console.error('Erreur lors du nettoyage du panier:', error);
+      console.error('Erreur lors du nettoyage des paniers:', error);
     }
   };
 
@@ -120,9 +128,20 @@ const SimpleOrderForm: React.FC<SimpleOrderFormProps> = ({
       return;
     }
 
+    if (cartItems.length === 0) {
+      toast({
+        title: "Panier vide",
+        description: "Votre panier est vide. Ajoutez des produits avant de commander.",
+        variant: "destructive"
+      });
+      return;
+    }
+
     setIsSubmitting(true);
 
     try {
+      console.log('Création de la commande...');
+      
       // Créer la commande
       const { data: order, error } = await supabase
         .from('orders')
@@ -131,8 +150,8 @@ const SimpleOrderForm: React.FC<SimpleOrderFormProps> = ({
           items: cartItems.map(item => ({
             product_id: item.product_id || item.id,
             quantity: item.quantity,
-            price: item.products?.price || item.price,
-            name: item.products?.name || item.name
+            price: item.products?.price || item.price || item.unit_price,
+            name: item.products?.name || item.name || item.product_name
           })),
           total_amount: total,
           delivery_fee: DELIVERY_FEE,
@@ -150,12 +169,16 @@ const SimpleOrderForm: React.FC<SimpleOrderFormProps> = ({
         .select()
         .single();
 
-      if (error) throw error;
+      if (error) {
+        console.error('Erreur création commande:', error);
+        throw error;
+      }
 
-      // Générer le code QR pour la commande
+      console.log('Commande créée:', order);
+
+      // Générer le code QR
       const qrCodeDataURL = await generateQRCode(order.id);
       
-      // Mettre à jour la commande avec le code QR
       if (qrCodeDataURL) {
         await supabase
           .from('orders')
@@ -165,15 +188,21 @@ const SimpleOrderForm: React.FC<SimpleOrderFormProps> = ({
           .eq('id', order.id);
       }
 
-      // Nettoyer tous les paniers après la commande réussie
+      // Nettoyer tous les paniers APRÈS la création réussie de la commande
       await clearAllCarts();
+
+      const paymentText = paymentMethod === 'orange_money' 
+        ? 'Orange Money (bientôt disponible) - Paiement à la livraison pour le moment'
+        : 'Paiement à la livraison en espèces';
 
       toast({
         title: "Commande créée avec succès !",
-        description: `Commande #${order.id.slice(0, 8)} - Paiement à la livraison`
+        description: `Commande #${order.id.slice(0, 8)} - ${paymentText}`,
+        duration: 5000
       });
 
       onOrderComplete();
+      
     } catch (error) {
       console.error('Erreur lors de la création de la commande:', error);
       toast({
@@ -197,11 +226,65 @@ const SimpleOrderForm: React.FC<SimpleOrderFormProps> = ({
         <CardHeader>
           <CardTitle className="flex items-center">
             <Package className="h-5 w-5 mr-2" />
-            Détails de la commande
+            Finaliser la commande
           </CardTitle>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-6">
+            {/* Méthode de paiement */}
+            <div>
+              <Label className="text-base font-semibold mb-3 block">
+                Méthode de paiement
+              </Label>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div
+                  className={`p-4 border-2 rounded-lg cursor-pointer transition-all ${
+                    paymentMethod === 'cash'
+                      ? 'border-orange-500 bg-orange-50'
+                      : 'border-gray-200 hover:border-gray-300'
+                  }`}
+                  onClick={() => setPaymentMethod('cash')}
+                >
+                  <div className="flex items-center space-x-3">
+                    <CreditCard className="h-5 w-5 text-orange-500" />
+                    <div>
+                      <p className="font-medium">Paiement à la livraison</p>
+                      <p className="text-sm text-gray-600">Espèces</p>
+                    </div>
+                  </div>
+                </div>
+                
+                <div
+                  className={`p-4 border-2 rounded-lg cursor-pointer transition-all ${
+                    paymentMethod === 'orange_money'
+                      ? 'border-orange-500 bg-orange-50'
+                      : 'border-gray-200 hover:border-gray-300'
+                  }`}
+                  onClick={() => setPaymentMethod('orange_money')}
+                >
+                  <div className="flex items-center space-x-3">
+                    <Smartphone className="h-5 w-5 text-orange-500" />
+                    <div>
+                      <p className="font-medium">Orange Money</p>
+                      <Badge variant="secondary" className="text-xs">
+                        Bientôt disponible
+                      </Badge>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              
+              {paymentMethod === 'orange_money' && (
+                <div className="mt-3 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                  <p className="text-sm text-blue-800">
+                    <strong>Orange Money</strong> sera bientôt disponible. 
+                    Pour le moment, le paiement se fera à la livraison.
+                  </p>
+                </div>
+              )}
+            </div>
+
+            {/* Notes de livraison */}
             <div>
               <Label htmlFor="notes">Notes pour la livraison (optionnel)</Label>
               <Textarea
@@ -213,36 +296,68 @@ const SimpleOrderForm: React.FC<SimpleOrderFormProps> = ({
               />
             </div>
 
-            <div className="bg-gray-50 p-4 rounded-lg space-y-2">
-              <div className="flex justify-between">
-                <span>Sous-total ({cartItems.length} articles)</span>
-                <span>{formatCFA(subtotal)}</span>
+            {/* Résumé de la commande */}
+            <div className="bg-gray-50 p-4 rounded-lg space-y-3">
+              <h4 className="font-semibold flex items-center">
+                <Package className="h-4 w-4 mr-2" />
+                Résumé de la commande
+              </h4>
+              
+              <div className="space-y-2 text-sm">
+                <div className="flex justify-between">
+                  <span>Sous-total ({cartItems.length} articles)</span>
+                  <span>{formatCFA(subtotal)}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span>Frais de livraison</span>
+                  <span>{formatCFA(DELIVERY_FEE)}</span>
+                </div>
+                <div className="border-t pt-2 flex justify-between font-bold text-lg">
+                  <span>Total</span>
+                  <span className="text-orange-500">{formatCFA(total)}</span>
+                </div>
               </div>
-              <div className="flex justify-between">
-                <span>Frais de livraison</span>
-                <span>{formatCFA(DELIVERY_FEE)}</span>
+              
+              <div className="flex items-center space-x-2 mt-3">
+                {paymentMethod === 'cash' ? (
+                  <CreditCard className="h-4 w-4 text-green-500" />
+                ) : (
+                  <Smartphone className="h-4 w-4 text-orange-500" />
+                )}
+                <p className="text-sm text-gray-600">
+                  {paymentMethod === 'orange_money' 
+                    ? 'Paiement Orange Money (bientôt disponible)'
+                    : 'Paiement à la livraison en espèces'
+                  }
+                </p>
               </div>
-              <div className="border-t pt-2 flex justify-between font-bold text-lg">
-                <span>Total</span>
-                <span className="text-orange-500">{formatCFA(total)}</span>
-              </div>
-              <p className="text-sm text-gray-600 mt-2">
-                💰 Paiement à la livraison en espèces
-              </p>
             </div>
 
+            {/* Bouton de commande */}
             <Button
               type="submit"
-              disabled={isSubmitting || !location}
-              className="w-full bg-orange-500 hover:bg-orange-600 text-white py-3"
+              disabled={isSubmitting || !location || cartItems.length === 0}
+              className="w-full bg-orange-500 hover:bg-orange-600 text-white py-3 text-lg"
             >
               {isSubmitting ? (
-                <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2" />
+                <div className="flex items-center">
+                  <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2" />
+                  Création en cours...
+                </div>
               ) : (
-                <CreditCard className="h-5 w-5 mr-2" />
+                <div className="flex items-center">
+                  <Package className="h-5 w-5 mr-2" />
+                  Confirmer la commande - {formatCFA(total)}
+                </div>
               )}
-              {isSubmitting ? 'Création en cours...' : `Commander ${formatCFA(total)}`}
             </Button>
+            
+            {(!location || cartItems.length === 0) && (
+              <div className="text-center text-sm text-gray-500">
+                {!location && "📍 Veuillez autoriser l'accès à votre position"}
+                {cartItems.length === 0 && "🛒 Votre panier est vide"}
+              </div>
+            )}
           </form>
         </CardContent>
       </Card>
