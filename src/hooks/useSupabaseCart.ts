@@ -4,7 +4,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/SupabaseAuthContext';
 import { useToast } from '@/hooks/use-toast';
 
-// Hook pour les paniers recettes utilisateur (déjà existant)
+// Hook pour les paniers recettes utilisateur
 export const useRecipeUserCarts = () => {
   const { currentUser } = useAuth();
   const { toast } = useToast();
@@ -44,7 +44,9 @@ export const useRecipeUserCarts = () => {
       cartName: string; 
       ingredients: Array<{productId: string, quantity: number}>; 
     }) => {
-      if (!currentUser) throw new Error('User not authenticated');
+      if (!currentUser) {
+        throw new Error('Vous devez être connecté pour créer un panier recette');
+      }
 
       // Créer le panier recette
       const { data: recipeCart, error: cartError } = await supabase
@@ -85,7 +87,7 @@ export const useRecipeUserCarts = () => {
       console.error('Error creating recipe cart:', error);
       toast({
         title: "Erreur",
-        description: "Impossible de créer le panier recette.",
+        description: error.message || "Impossible de créer le panier recette.",
         variant: "destructive"
       });
     },
@@ -186,7 +188,7 @@ export const usePersonalCart = () => {
 
   // Créer ou récupérer le panier personnel
   const getOrCreatePersonalCart = async () => {
-    if (!currentUser) throw new Error('User not authenticated');
+    if (!currentUser) throw new Error('Vous devez être connecté pour ajouter des produits au panier');
 
     let cart = personalCartQuery.data;
     if (!cart) {
@@ -243,7 +245,7 @@ export const usePersonalCart = () => {
       console.error('Error adding to personal cart:', error);
       toast({
         title: "Erreur",
-        description: "Impossible d'ajouter le produit au panier.",
+        description: error.message || "Impossible d'ajouter le produit au panier.",
         variant: "destructive"
       });
     },
@@ -345,5 +347,104 @@ export const useMainCart = () => {
     mainCart: mainCartQuery.data,
     cartItems,
     isLoading: mainCartQuery.isLoading,
+  };
+};
+
+// Hook pour les paniers préconfigurés
+export const usePreconfiguredCarts = () => {
+  const { currentUser } = useAuth();
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+
+  const addPreconfiguredCartToPersonal = useMutation({
+    mutationFn: async (cartId: string) => {
+      if (!currentUser) {
+        throw new Error('Vous devez être connecté pour ajouter ce panier');
+      }
+
+      // Récupérer les détails du panier préconfiguré
+      const { data: preconfiguredCart, error: fetchError } = await supabase
+        .from('preconfigured_carts')
+        .select('*')
+        .eq('id', cartId)
+        .single();
+
+      if (fetchError) throw fetchError;
+
+      // Créer ou récupérer le panier personnel
+      let { data: personalCart, error: cartError } = await supabase
+        .from('personal_carts')
+        .select('*')
+        .eq('user_id', currentUser.id)
+        .single();
+
+      if (cartError && cartError.code === 'PGRST116') {
+        const { data, error } = await supabase
+          .from('personal_carts')
+          .insert({ user_id: currentUser.id })
+          .select()
+          .single();
+
+        if (error) throw error;
+        personalCart = data;
+      } else if (cartError) {
+        throw cartError;
+      }
+
+      // Ajouter les items du panier préconfiguré au panier personnel
+      const items = preconfiguredCart.items as Array<{productId: string, quantity: number}>;
+      
+      for (const item of items) {
+        // Vérifier si le produit existe déjà
+        const { data: existingItems } = await supabase
+          .from('personal_cart_items')
+          .select('*')
+          .eq('personal_cart_id', personalCart.id)
+          .eq('product_id', item.productId);
+
+        if (existingItems && existingItems.length > 0) {
+          // Mettre à jour la quantité
+          const { error } = await supabase
+            .from('personal_cart_items')
+            .update({ quantity: existingItems[0].quantity + item.quantity })
+            .eq('id', existingItems[0].id);
+
+          if (error) throw error;
+        } else {
+          // Ajouter un nouvel item
+          const { error } = await supabase
+            .from('personal_cart_items')
+            .insert({
+              personal_cart_id: personalCart.id,
+              product_id: item.productId,
+              quantity: item.quantity,
+            });
+
+          if (error) throw error;
+        }
+      }
+
+      return preconfiguredCart;
+    },
+    onSuccess: (cart) => {
+      queryClient.invalidateQueries({ queryKey: ['personal-cart-items'] });
+      toast({
+        title: "Panier ajouté",
+        description: `Le panier "${cart.name}" a été ajouté à votre panier personnel.`
+      });
+    },
+    onError: (error) => {
+      console.error('Error adding preconfigured cart:', error);
+      toast({
+        title: "Erreur",
+        description: error.message || "Impossible d'ajouter le panier.",
+        variant: "destructive"
+      });
+    },
+  });
+
+  return {
+    addPreconfiguredCartToPersonal: addPreconfiguredCartToPersonal.mutate,
+    isAdding: addPreconfiguredCartToPersonal.isPending,
   };
 };
