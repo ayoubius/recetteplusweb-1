@@ -1,0 +1,165 @@
+
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Récupération de mot de passe</title>
+  <style>
+    @keyframes shake {
+      0%, 100% { transform: translateX(0); }
+      25% { transform: translateX(-5px); }
+      75% { transform: translateX(5px); }
+    }
+    @keyframes lockPulse {
+      0%, 100% { transform: scale(1); filter: drop-shadow(0 0 10px rgba(220, 38, 38, 0.5)); }
+      50% { transform: scale(1.1); filter: drop-shadow(0 0 20px rgba(220, 38, 38, 0.8)); }
+    }
+    @keyframes slideInLeft {
+      from { transform: translateX(-100px); opacity: 0; }
+      to { transform: translateX(0); opacity: 1; }
+    }
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      margin: 0;
+      padding: 20px;
+      background: linear-gradient(135deg, #FEE2E2 0%, #FECACA 100%);
+    }
+    .container {
+      max-width: 600px;
+      margin: 0 auto;
+      background: white;
+      border-radius: 16px;
+      overflow: hidden;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.1);
+      animation: slideInLeft 0.8s ease-out;
+    }
+    .header {
+      background: linear-gradient(135deg, #DC2626 0%, #B91C1C 100%);
+      padding: 50px 30px;
+      text-align: center;
+      position: relative;
+    }
+    .logo {
+      height: 80px;
+      margin-bottom: 30px;
+      animation: shake 0.5s ease-in-out;
+    }
+    .header h1 {
+      color: white;
+      font-size: 28px;
+      font-weight: bold;
+      margin: 0;
+      text-shadow: 0 4px 8px rgba(0,0,0,0.3);
+    }
+    .content {
+      padding: 50px 40px;
+      text-align: center;
+    }
+    .lock-icon {
+      font-size: 64px;
+      margin-bottom: 30px;
+      animation: lockPulse 2s ease-in-out infinite;
+    }
+    .message {
+      color: #374151;
+      font-size: 18px;
+      line-height: 1.7;
+      margin-bottom: 40px;
+    }
+    .reset-button {
+      display: inline-block;
+      background: linear-gradient(135deg, #DC2626 0%, #B91C1C 100%);
+      color: white;
+      padding: 18px 40px;
+      border-radius: 50px;
+      text-decoration: none;
+      font-weight: bold;
+      font-size: 18px;
+      box-shadow: 0 8px 25px rgba(220, 38, 38, 0.4);
+      transition: all 0.3s ease;
+    }
+    .reset-button:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 12px 35px rgba(220, 38, 38, 0.6);
+    }
+    .security-alert {
+      background: #FEF3E2;
+      border: 2px solid #F59E0B;
+      border-radius: 12px;
+      padding: 25px;
+      margin: 40px 0;
+      text-align: left;
+    }
+    .security-steps {
+      background: #F0FDF4;
+      border: 2px solid #22C55E;
+      border-radius: 12px;
+      padding: 25px;
+      margin: 30px 0;
+      text-align: left;
+    }
+    .footer {
+      background: #F9FAFB;
+      padding: 30px;
+      text-align: center;
+      color: #6B7280;
+      font-size: 14px;
+      border-top: 1px solid #E5E7EB;
+    }
+    .footer a {
+      color: #DC2626;
+      text-decoration: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <img src="https://uymqovqiuoneslmvtvti.supabase.co/storage/v1/object/public/logo/logo.png" alt="Recette+" class="logo">
+      <h1>Récupération de compte</h1>
+    </div>
+    
+    <div class="content">
+      <div class="lock-icon">🔐</div>
+      <p class="message">
+        Vous avez demandé à réinitialiser votre mot de passe sur Recette+.<br>
+        Cliquez sur le bouton ci-dessous pour créer un nouveau mot de passe sécurisé.
+      </p>
+      
+      <a href="{{ .ConfirmationURL }}" class="reset-button">
+        🔑 Réinitialiser mon mot de passe
+      </a>
+      
+      <div class="security-alert">
+        <h3 style="color: #F59E0B; margin: 0 0 15px 0; font-size: 16px;">
+          ⚠️ Mesures de sécurité
+        </h3>
+        <ul style="margin: 0; color: #374151; font-size: 14px; padding-left: 20px;">
+          <li>Ce lien expirera dans 1 heure</li>
+          <li>Il ne peut être utilisé qu'une seule fois</li>
+          <li>Si vous n'avez pas demandé cette réinitialisation, ignorez cet email</li>
+          <li>Contactez-nous immédiatement si vous pensez que votre compte est compromis</li>
+        </ul>
+      </div>
+      
+      <div class="security-steps">
+        <h3 style="color: #22C55E; margin: 0 0 15px 0; font-size: 16px;">
+          ✅ Conseils pour un mot de passe sécurisé
+        </h3>
+        <ul style="margin: 0; color: #374151; font-size: 14px; padding-left: 20px;">
+          <li>Utilisez au moins 8 caractères</li>
+          <li>Mélangez majuscules, minuscules, chiffres et symboles</li>
+          <li>Évitez les informations personnelles</li>
+          <li>N'utilisez pas le même mot de passe ailleurs</li>
+        </ul>
+      </div>
+    </div>
+    
+    <div class="footer">
+      <p>© 2024 Recette+ - Toute la cuisine malienne à portée de main</p>
+      <p>Support technique : <a href="mailto:support@recette-plus.com">support@recette-plus.com</a></p>
+    </div>
+  </div>
+</body>
+</html>

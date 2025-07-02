@@ -1,0 +1,143 @@
+
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Changement d'adresse email</title>
+  <style>
+    @keyframes slideDown {
+      from { transform: translateY(-30px); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+    @keyframes bounce {
+      0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
+      40% { transform: translateY(-10px); }
+      60% { transform: translateY(-5px); }
+    }
+    @keyframes glow {
+      0%, 100% { box-shadow: 0 8px 25px rgba(249, 115, 22, 0.4); }
+      50% { box-shadow: 0 8px 35px rgba(249, 115, 22, 0.7); }
+    }
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      margin: 0;
+      padding: 20px;
+      background: linear-gradient(135deg, #EFF6FF 0%, #DBEAFE 100%);
+    }
+    .container {
+      max-width: 600px;
+      margin: 0 auto;
+      background: white;
+      border-radius: 16px;
+      overflow: hidden;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.1);
+      animation: slideDown 0.8s ease-out;
+    }
+    .header {
+      background: linear-gradient(135deg, #3B82F6 0%, #1D4ED8 100%);
+      padding: 50px 30px;
+      text-align: center;
+      position: relative;
+    }
+    .logo {
+      height: 80px;
+      margin-bottom: 30px;
+      animation: bounce 2s ease-in-out infinite;
+    }
+    .header h1 {
+      color: white;
+      font-size: 28px;
+      font-weight: bold;
+      margin: 0;
+      text-shadow: 0 4px 8px rgba(0,0,0,0.3);
+    }
+    .content {
+      padding: 50px 40px;
+      text-align: center;
+    }
+    .change-icon {
+      font-size: 64px;
+      margin-bottom: 30px;
+      animation: bounce 1.5s ease-in-out infinite;
+    }
+    .message {
+      color: #374151;
+      font-size: 18px;
+      line-height: 1.7;
+      margin-bottom: 40px;
+    }
+    .confirm-button {
+      display: inline-block;
+      background: linear-gradient(135deg, #3B82F6 0%, #1D4ED8 100%);
+      color: white;
+      padding: 18px 40px;
+      border-radius: 50px;
+      text-decoration: none;
+      font-weight: bold;
+      font-size: 18px;
+      animation: glow 2s ease-in-out infinite;
+      transition: all 0.3s ease;
+    }
+    .confirm-button:hover {
+      transform: translateY(-3px);
+    }
+    .warning-box {
+      background: #FEF3E2;
+      border: 2px solid #F59E0B;
+      border-radius: 12px;
+      padding: 25px;
+      margin: 40px 0;
+      text-align: left;
+    }
+    .footer {
+      background: #F9FAFB;
+      padding: 30px;
+      text-align: center;
+      color: #6B7280;
+      font-size: 14px;
+      border-top: 1px solid #E5E7EB;
+    }
+    .footer a {
+      color: #3B82F6;
+      text-decoration: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <img src="https://uymqovqiuoneslmvtvti.supabase.co/storage/v1/object/public/logo/logo.png" alt="Recette+" class="logo">
+      <h1>Changement d'adresse email</h1>
+    </div>
+    
+    <div class="content">
+      <div class="change-icon">📧</div>
+      <p class="message">
+        Vous avez demandé à changer votre adresse email sur Recette+.<br>
+        Cliquez sur le bouton ci-dessous pour confirmer ce changement.
+      </p>
+      
+      <a href="{{ .ConfirmationURL }}" class="confirm-button">
+        ✅ Confirmer le changement
+      </a>
+      
+      <div class="warning-box">
+        <h3 style="color: #F59E0B; margin: 0 0 15px 0; font-size: 16px;">
+          ⚠️ Important à savoir
+        </h3>
+        <ul style="margin: 0; color: #374151; font-size: 14px; padding-left: 20px;">
+          <li>Ce lien expirera dans 24 heures</li>
+          <li>Après confirmation, votre ancienne adresse ne sera plus valide</li>
+          <li>Si vous n'avez pas demandé ce changement, ignorez cet email</li>
+        </ul>
+      </div>
+    </div>
+    
+    <div class="footer">
+      <p>© 2024 Recette+ - Toute la cuisine malienne à portée de main</p>
+      <p>Si vous avez des questions, contactez-nous à <a href="mailto:support@recette-plus.com">support@recette-plus.com</a></p>
+    </div>
+  </div>
+</body>
+</html>
