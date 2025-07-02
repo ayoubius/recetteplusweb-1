@@ -4,20 +4,20 @@ import { useParams, Link } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Eye, Heart, Clock, ArrowLeft } from 'lucide-react';
+import { Eye, Heart, Clock, ArrowLeft, ChefHat } from 'lucide-react';
 import { useSupabaseVideos } from '@/hooks/useSupabaseVideos';
-import { useSupabaseRecipes } from '@/hooks/useSupabaseRecipes';
+import { useVideoRecipe } from '@/hooks/useVideoRecipe';
 import VideoPlayer from '@/components/VideoPlayer';
+import RecipeProducts from '@/components/RecipeProducts';
 import { useSupabaseFavorites } from '@/hooks/useSupabaseFavorites';
 
 const VideoDetail = () => {
   const { id } = useParams<{ id: string }>();
   const { data: videos = [], isLoading } = useSupabaseVideos();
-  const { data: recipes = [] } = useSupabaseRecipes();
   const { addFavorite, removeFavorite, data: favorites = [] } = useSupabaseFavorites();
   
   const video = videos.find(v => v.id === id);
-  const relatedRecipe = video?.recipe_id ? recipes.find(r => r.id === video.recipe_id) : null;
+  const { data: relatedRecipe } = useVideoRecipe(video?.id || '');
   const isVideoFavorite = video ? favorites.some(fav => fav.item_id === video.id && fav.type === 'video') : false;
 
   if (isLoading) {
@@ -73,7 +73,7 @@ const VideoDetail = () => {
             />
 
             {/* Informations sur la vidéo */}
-            <Card>
+            <Card className="mb-6">
               <CardContent className="p-6">
                 <div className="flex flex-wrap gap-2 mb-4">
                   <Badge variant="secondary">{video.category}</Badge>
@@ -108,6 +108,51 @@ const VideoDetail = () => {
                 )}
               </CardContent>
             </Card>
+
+            {/* Recette associée */}
+            {relatedRecipe && (
+              <Card className="mb-6">
+                <CardHeader>
+                  <CardTitle className="flex items-center">
+                    <ChefHat className="h-5 w-5 mr-2" />
+                    Recette associée
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="flex items-start space-x-4">
+                    <img 
+                      src={relatedRecipe.image || '/placeholder.svg'} 
+                      alt={relatedRecipe.title}
+                      className="w-20 h-20 object-cover rounded-lg"
+                    />
+                    <div className="flex-1">
+                      <h3 className="font-semibold text-lg mb-2">{relatedRecipe.title}</h3>
+                      <p className="text-gray-600 text-sm mb-3 line-clamp-2">
+                        {relatedRecipe.description}
+                      </p>
+                      <div className="flex items-center gap-4 text-sm text-gray-500 mb-3">
+                        <span>⏱️ {relatedRecipe.cook_time} min</span>
+                        <span>👥 {relatedRecipe.servings} personnes</span>
+                        <span>⭐ {relatedRecipe.rating || 0}/5</span>
+                      </div>
+                      <Link to={`/recettes/${relatedRecipe.id}`}>
+                        <Button size="sm" className="bg-orange-500 hover:bg-orange-600">
+                          Voir la recette complète
+                        </Button>
+                      </Link>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Produits de la recette */}
+            {relatedRecipe && (
+              <RecipeProducts 
+                recipeId={relatedRecipe.id} 
+                recipeTitle={relatedRecipe.title}
+              />
+            )}
           </div>
 
           {/* Sidebar */}
@@ -148,14 +193,6 @@ const VideoDetail = () => {
                     <Heart className={`h-4 w-4 mr-2 ${isVideoFavorite ? 'fill-current' : ''}`} />
                     {isVideoFavorite ? 'Retirer des favoris' : 'Ajouter aux favoris'}
                   </Button>
-                  
-                  {relatedRecipe && (
-                    <Link to={`/recettes/${relatedRecipe.id}`}>
-                      <Button variant="outline" className="w-full">
-                        Voir la recette: {relatedRecipe.title}
-                      </Button>
-                    </Link>
-                  )}
                 </div>
               </CardContent>
             </Card>

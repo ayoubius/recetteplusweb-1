@@ -10,27 +10,21 @@ import {
   Users, 
   Star, 
   Play, 
-  ShoppingCart, 
-  Plus, 
-  Package,
   ChefHat,
-  ArrowLeft
+  ArrowLeft,
+  Heart
 } from 'lucide-react';
 import { useSupabaseRecipes } from '@/hooks/useSupabaseRecipes';
-import { useSupabaseProducts } from '@/hooks/useSupabaseProducts';
-import { useRecipeUserCarts } from '@/hooks/useSupabaseCart';
-import { formatCFA } from '@/lib/currency';
-import { useToast } from '@/hooks/use-toast';
+import RecipeProducts from '@/components/RecipeProducts';
+import { useSupabaseFavorites } from '@/hooks/useSupabaseFavorites';
 
 const RecipeDetail = () => {
   const { id } = useParams<{ id: string }>();
   const { data: recipes = [], isLoading: recipeLoading } = useSupabaseRecipes();
-  const { data: products = [] } = useSupabaseProducts();
-  const { createRecipeCart, isCreating } = useRecipeUserCarts();
-  const { toast } = useToast();
-  const [selectedIngredients, setSelectedIngredients] = useState<string[]>([]);
+  const { addFavorite, removeFavorite, data: favorites = [] } = useSupabaseFavorites();
 
   const recipe = recipes.find(r => r.id === id);
+  const isRecipeFavorite = recipe ? favorites.some(fav => fav.item_id === recipe.id && fav.type === 'recipe') : false;
 
   if (recipeLoading) {
     return (
@@ -60,66 +54,6 @@ const RecipeDetail = () => {
       </div>
     );
   }
-
-  // Trouver les produits correspondant aux ingrédients
-  const getProductsForIngredients = () => {
-    if (!recipe.ingredients || !Array.isArray(recipe.ingredients)) {
-      return [];
-    }
-
-    return recipe.ingredients
-      .map((ingredient: any) => {
-        if (typeof ingredient === 'object' && ingredient.product_id) {
-          const product = products.find(p => p.id === ingredient.product_id);
-          return product ? { ...product, recipeQuantity: ingredient.quantity, unit: ingredient.unit } : null;
-        }
-        return null;
-      })
-      .filter(Boolean);
-  };
-
-  const recipeProducts = getProductsForIngredients();
-
-  const handleAddIngredientToCart = async (productId: string) => {
-    try {
-      // Cette fonction pourrait être améliorée pour ajouter individuellement
-      setSelectedIngredients(prev => [...prev, productId]);
-      toast({
-        title: "Ingrédient sélectionné",
-        description: "Utilisez 'Créer panier recette' pour ajouter tous les ingrédients."
-      });
-    } catch (error) {
-      console.error('Erreur:', error);
-    }
-  };
-
-  const handleCreateRecipeCart = async () => {
-    try {
-      const ingredients = recipeProducts
-        .filter(product => product)
-        .map(product => ({
-          productId: product!.id,
-          quantity: 1 // Pourrait être basé sur recipeQuantity
-        }));
-
-      if (ingredients.length === 0) {
-        toast({
-          title: "Aucun ingrédient",
-          description: "Cette recette n'a pas d'ingrédients disponibles.",
-          variant: "destructive"
-        });
-        return;
-      }
-
-      createRecipeCart({
-        recipeId: recipe.id,
-        cartName: `Panier - ${recipe.title}`,
-        ingredients
-      });
-    } catch (error) {
-      console.error('Erreur:', error);
-    }
-  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-amber-50 via-orange-50 to-amber-100">
@@ -182,6 +116,16 @@ const RecipeDetail = () => {
                 {recipe.description && (
                   <p className="text-gray-700 leading-relaxed">{recipe.description}</p>
                 )}
+
+                <div className="mt-4">
+                  <Button 
+                    className={`${isRecipeFavorite ? 'bg-red-500 hover:bg-red-600' : 'bg-orange-500 hover:bg-orange-600'}`}
+                    onClick={() => isRecipeFavorite ? removeFavorite({itemId: recipe.id, type: 'recipe'}) : addFavorite({itemId: recipe.id, type: 'recipe'})}
+                  >
+                    <Heart className={`h-4 w-4 mr-2 ${isRecipeFavorite ? 'fill-current' : ''}`} />
+                    {isRecipeFavorite ? 'Retirer des favoris' : 'Ajouter aux favoris'}
+                  </Button>
+                </div>
               </CardContent>
             </Card>
 
@@ -206,82 +150,16 @@ const RecipeDetail = () => {
                 </ol>
               </CardContent>
             </Card>
+
+            {/* Produits de la recette */}
+            <RecipeProducts 
+              recipeId={recipe.id} 
+              recipeTitle={recipe.title}
+            />
           </div>
 
-          {/* Sidebar - Ingrédients et produits */}
+          {/* Sidebar - Informations */}
           <div className="space-y-6">
-            {/* Ingrédients avec produits */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center justify-between">
-                  <span className="flex items-center">
-                    <Package className="h-5 w-5 mr-2" />
-                    Ingrédients ({recipeProducts.length})
-                  </span>
-                  {recipeProducts.length > 0 && (
-                    <Button
-                      size="sm"
-                      onClick={handleCreateRecipeCart}
-                      disabled={isCreating}
-                      className="bg-orange-500 hover:bg-orange-600"
-                    >
-                      <ShoppingCart className="h-4 w-4 mr-1" />
-                      Créer panier recette
-                    </Button>
-                  )}
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                {recipeProducts.length > 0 ? (
-                  recipeProducts.map((product) => {
-                    if (!product) return null;
-                    const isSelected = selectedIngredients.includes(product.id);
-                    
-                    return (
-                      <div key={product.id} className="border rounded-lg p-4 space-y-3">
-                        <div className="flex items-start space-x-3">
-                          <img 
-                            src={product.image || '/placeholder.svg'} 
-                            alt={product.name}
-                            className="w-12 h-12 object-cover rounded-lg flex-shrink-0"
-                          />
-                          <div className="flex-1 min-w-0">
-                            <h4 className="font-medium text-sm truncate">{product.name}</h4>
-                            <p className="text-xs text-gray-500">{product.recipeQuantity} {product.unit}</p>
-                            <p className="text-orange-500 font-semibold text-sm">
-                              {formatCFA(product.price)}
-                            </p>
-                          </div>
-                        </div>
-                        <Button
-                          size="sm"
-                          onClick={() => handleAddIngredientToCart(product.id)}
-                          disabled={isCreating || isSelected}
-                          className={`w-full ${isSelected ? 'bg-green-500 hover:bg-green-600' : 'bg-orange-500 hover:bg-orange-600'}`}
-                        >
-                          {isSelected ? (
-                            <>✓ Sélectionné</>
-                          ) : (
-                            <>
-                              <Plus className="h-4 w-4 mr-1" />
-                              Sélectionner
-                            </>
-                          )}
-                        </Button>
-                      </div>
-                    );
-                  })
-                ) : (
-                  <div className="text-center py-8">
-                    <Package className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                    <p className="text-gray-500 text-sm">
-                      Aucun produit disponible pour cette recette
-                    </p>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-
             {/* Informations nutritionnelles */}
             <Card>
               <CardHeader>

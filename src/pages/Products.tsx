@@ -9,6 +9,7 @@ import { Star, ShoppingCart, Plus, Search, Filter } from 'lucide-react';
 import { useSupabaseProducts } from '@/hooks/useSupabaseProducts';
 import { useAddToCart } from '@/hooks/useAddToCart';
 import { formatCFA } from '@/lib/currency';
+import FeaturedCartsCarousel from '@/components/FeaturedCartsCarousel';
 
 const Products = () => {
   const { data: products = [], isLoading } = useSupabaseProducts();
@@ -77,6 +78,9 @@ const Products = () => {
             Découvrez notre sélection de produits frais et de qualité
           </p>
         </div>
+
+        {/* Paniers préconfigurés en vedette */}
+        <FeaturedCartsCarousel />
 
         {/* Filtres */}
         <Card className="mb-8">
