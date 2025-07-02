@@ -1,8 +1,8 @@
-
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/SupabaseAuthContext';
 import { useToast } from '@/hooks/use-toast';
+import { MainCartItem } from '@/types/cart';
 
 // Hook pour les paniers recettes utilisateur
 export const useRecipeUserCarts = () => {
@@ -291,21 +291,26 @@ export const usePersonalCart = () => {
   };
 };
 
-// Hook pour le panier principal (utilise la nouvelle vue)
+// Hook pour le panier principal - utilise une requête RPC pour récupérer la vue
 export const useMainCart = () => {
   const { currentUser } = useAuth();
 
   const mainCartQuery = useQuery({
     queryKey: ['main-cart', currentUser?.id],
-    queryFn: async () => {
+    queryFn: async (): Promise<MainCartItem[]> => {
       if (!currentUser) return [];
 
-      const { data, error } = await supabase
-        .from('user_main_cart_view')
-        .select('*')
-        .eq('user_id', currentUser.id);
+      // Utiliser une requête RPC pour récupérer les données de la vue
+      const { data, error } = await supabase.rpc('get_user_main_cart_data', {
+        user_uuid: currentUser.id
+      });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error fetching main cart:', error);
+        // Fallback: construire les données manuellement
+        return await buildMainCartManually(currentUser.id);
+      }
+
       return data || [];
     },
     enabled: !!currentUser,
@@ -316,6 +321,109 @@ export const useMainCart = () => {
     isLoading: mainCartQuery.isLoading,
   };
 };
+
+// Fonction de fallback pour construire le panier principal manuellement
+async function buildMainCartManually(userId: string): Promise<MainCartItem[]> {
+  const cartItems: MainCartItem[] = [];
+
+  try {
+    // Récupérer les items du panier personnel
+    const { data: personalCartData } = await supabase
+      .from('personal_carts')
+      .select(`
+        id,
+        personal_cart_items (
+          id,
+          product_id,
+          quantity,
+          products (name, price)
+        )
+      `)
+      .eq('user_id', userId)
+      .single();
+
+    if (personalCartData?.personal_cart_items) {
+      personalCartData.personal_cart_items.forEach((item: any) => {
+        cartItems.push({
+          user_id: userId,
+          cart_type: 'personal',
+          cart_id: personalCartData.id,
+          cart_name: 'Panier Personnel',
+          item_id: item.id,
+          product_id: item.product_id,
+          quantity: item.quantity,
+          product_name: item.products?.name || '',
+          unit_price: item.products?.price || 0,
+          total_price: (item.products?.price || 0) * item.quantity,
+        });
+      });
+    }
+
+    // Récupérer les paniers recettes
+    const { data: recipeCartsData } = await supabase
+      .from('recipe_user_carts')
+      .select(`
+        id,
+        cart_name,
+        recipe_cart_items (
+          id,
+          product_id,
+          quantity,
+          products (name, price)
+        )
+      `)
+      .eq('user_id', userId);
+
+    recipeCartsData?.forEach((cart: any) => {
+      cart.recipe_cart_items?.forEach((item: any) => {
+        cartItems.push({
+          user_id: userId,
+          cart_type: 'recipe',
+          cart_id: cart.id,
+          cart_name: cart.cart_name,
+          item_id: item.id,
+          product_id: item.product_id,
+          quantity: item.quantity,
+          product_name: item.products?.name || '',
+          unit_price: item.products?.price || 0,
+          total_price: (item.products?.price || 0) * item.quantity,
+        });
+      });
+    });
+
+    // Récupérer les paniers préconfigurés
+    const { data: userPreconfiguredCarts } = await supabase
+      .from('user_preconfigured_carts')
+      .select(`
+        id,
+        preconfigured_carts (
+          name,
+          total_price
+        )
+      `)
+      .eq('user_id', userId);
+
+    userPreconfiguredCarts?.forEach((userCart: any) => {
+      cartItems.push({
+        user_id: userId,
+        cart_type: 'preconfigured',
+        cart_id: userCart.id,
+        cart_name: userCart.preconfigured_carts?.name || '',
+        item_id: userCart.id,
+        product_id: null,
+        quantity: 1,
+        product_name: userCart.preconfigured_carts?.name || '',
+        unit_price: userCart.preconfigured_carts?.total_price || 0,
+        total_price: userCart.preconfigured_carts?.total_price || 0,
+      });
+    });
+
+  } catch (error) {
+    console.error('Error building main cart manually:', error);
+  }
+
+  return cartItems;
+}
 
 // Hook pour les paniers préconfigurés
 export const usePreconfiguredCarts = () => {

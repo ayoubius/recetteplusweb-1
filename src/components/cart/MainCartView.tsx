@@ -4,10 +4,11 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
-import { ShoppingCart, Package, ChefHat, User, Settings, Trash2 } from 'lucide-react';
+import { ShoppingCart, Package, ChefHat, User, Settings } from 'lucide-react';
 import { useMainCart } from '@/hooks/useSupabaseCart';
 import { formatCFA, DELIVERY_FEE } from '@/lib/currency';
 import { useNavigate } from 'react-router-dom';
+import { MainCartItem } from '@/types/cart';
 import SimpleOrderForm from './SimpleOrderForm';
 
 const MainCartView = () => {
@@ -30,7 +31,7 @@ const MainCartView = () => {
     }
     acc[item.cart_type].push(item);
     return acc;
-  }, {} as Record<string, typeof cartItems>);
+  }, {} as Record<string, MainCartItem[]>);
 
   const subtotal = cartItems.reduce((sum, item) => sum + (item.total_price || 0), 0);
 
