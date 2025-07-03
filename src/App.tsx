@@ -4,7 +4,7 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Toaster } from '@/components/ui/sonner';
 import { AuthProvider } from '@/contexts/AuthContext';
-import { AuthProvider as SupabaseAuthProvider } from '@/contexts/SupabaseAuthContext';
+import { SupabaseAuthProvider } from '@/contexts/SupabaseAuthContext';
 import Home from '@/pages/Home';
 import About from '@/pages/About';
 import Products from '@/pages/Products';
@@ -15,8 +15,6 @@ import Profile from '@/pages/Profile';
 import ProductDetails from '@/pages/ProductDetail';
 import RecipeDetails from '@/pages/RecipeDetail';
 import NotFound from '@/pages/NotFound';
-import CategoryPage from '@/pages/Products';
-import SearchPage from '@/pages/Products';
 import VideoPage from '@/pages/Videos';
 import VideoDetails from '@/pages/VideoDetail';
 import CartPage from '@/pages/Cart';
@@ -53,20 +51,28 @@ function App() {
             <Routes>
               <Route path="/" element={<Home />} />
               <Route path="/about" element={<About />} />
+              {/* Routes en français pour correspondre aux liens du Header */}
+              <Route path="/produits" element={<Products />} />
+              <Route path="/produits/:id" element={<ProductDetails />} />
+              <Route path="/recettes" element={<Recipes />} />
+              <Route path="/recettes/:id" element={<RecipeDetails />} />
+              <Route path="/videos" element={<VideoPage />} />
+              <Route path="/videos/:id" element={<VideoDetails />} />
+              {/* Routes alternatives en anglais pour la compatibilité */}
               <Route path="/products" element={<Products />} />
               <Route path="/products/:id" element={<ProductDetails />} />
               <Route path="/recipes" element={<Recipes />} />
               <Route path="/recipes/:id" element={<RecipeDetails />} />
-              <Route path="/videos" element={<VideoPage />} />
-              <Route path="/videos/:id" element={<VideoDetails />} />
-              <Route path="/categories/:category" element={<CategoryPage />} />
-              <Route path="/search" element={<SearchPage />} />
+              <Route path="/categories/:category" element={<Products />} />
+              <Route path="/search" element={<Products />} />
               <Route path="/login" element={<Login />} />
               <Route path="/register" element={<Register />} />
               <Route path="/profile" element={<Profile />} />
+              <Route path="/panier" element={<CartPage />} />
               <Route path="/cart" element={<CartPage />} />
               <Route path="/checkout" element={<CheckoutPage />} />
               <Route path="/order-confirmation" element={<OrderConfirmationPage />} />
+              <Route path="/favoris" element={<NotFound />} />
               
               {/* Admin Routes */}
               <Route path="/admin" element={<AdminDashboard />} />
