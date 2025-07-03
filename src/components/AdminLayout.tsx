@@ -105,6 +105,12 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
       show: permissions.can_manage_videos || permissions.is_super_admin
     },
     { 
+      path: '/admin/preconfigured-carts', 
+      icon: ShoppingCart, 
+      label: 'Paniers Préconfigurés',
+      show: permissions.can_manage_products || permissions.is_super_admin
+    },
+    { 
       path: '/admin/categories', 
       icon: Settings, 
       label: 'Catégories',
