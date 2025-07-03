@@ -1,17 +1,17 @@
-
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Plus, Trash2, Search } from 'lucide-react';
+import { Plus, Trash2 } from 'lucide-react';
 import { Recipe } from '@/hooks/useSupabaseRecipes';
 import { RECIPE_CATEGORIES, RecipeCategory } from '@/lib/categories';
 import { useSupabaseProducts } from '@/hooks/useSupabaseProducts';
 import { useSupabaseVideos } from '@/hooks/useSupabaseVideos';
 import { useAuth } from '@/contexts/SupabaseAuthContext';
+import FileUploadField from './FileUploadField';
+import { useSupabaseUpload } from '@/hooks/useSupabaseUpload';
 
 interface RecipeFormProps {
   recipe?: Recipe;
@@ -24,6 +24,9 @@ const RecipeForm: React.FC<RecipeFormProps> = ({ recipe, onSubmit, onCancel, isL
   const { data: products } = useSupabaseProducts();
   const { data: videos } = useSupabaseVideos();
   const { currentUser } = useAuth();
+  const { uploadFile, uploading, uploadProgress } = useSupabaseUpload();
+  
+  const [selectedImageFile, setSelectedImageFile] = useState<File | null>(null);
   
   const [formData, setFormData] = useState({
     title: recipe?.title || '',
@@ -46,7 +49,7 @@ const RecipeForm: React.FC<RecipeFormProps> = ({ recipe, onSubmit, onCancel, isL
 
   const [instructions, setInstructions] = useState(recipe?.instructions || ['']);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     const validIngredients = ingredients.filter(ing => 
@@ -58,9 +61,19 @@ const RecipeForm: React.FC<RecipeFormProps> = ({ recipe, onSubmit, onCancel, isL
       return;
     }
 
-    // Ensure all required properties are included
+    let imageUrl = formData.image;
+    
+    // Upload image if selected
+    if (selectedImageFile) {
+      const uploadedUrl = await uploadFile(selectedImageFile, 'recette');
+      if (uploadedUrl) {
+        imageUrl = uploadedUrl;
+      }
+    }
+
     const recipeData = {
       ...formData,
+      image: imageUrl,
       created_by: recipe?.created_by || currentUser?.id || '',
       ingredients: validIngredients,
       instructions: instructions.filter(inst => inst.trim() !== ''),
@@ -140,16 +153,16 @@ const RecipeForm: React.FC<RecipeFormProps> = ({ recipe, onSubmit, onCancel, isL
         />
       </div>
 
-      <div>
-        <Label htmlFor="image">URL de l'image *</Label>
-        <Input
-          id="image"
-          type="url"
-          value={formData.image}
-          onChange={(e) => setFormData({...formData, image: e.target.value})}
-          required
-        />
-      </div>
+      <FileUploadField
+        label="Image de la recette"
+        value={formData.image}
+        onChange={(url) => setFormData({...formData, image: url})}
+        onFileSelect={setSelectedImageFile}
+        acceptedTypes="image/*"
+        uploading={uploading}
+        uploadProgress={uploadProgress}
+        placeholder="https://exemple.com/recette.jpg"
+      />
 
       <div>
         <Label htmlFor="video_id">Vidéo associée (optionnel)</Label>
@@ -309,11 +322,11 @@ const RecipeForm: React.FC<RecipeFormProps> = ({ recipe, onSubmit, onCancel, isL
       </div>
 
       <div className="flex justify-end space-x-4">
-        <Button type="button" variant="outline" onClick={onCancel}>
+        <Button type="button" variant="outline" onClick={onCancel} disabled={uploading}>
           Annuler
         </Button>
-        <Button type="submit" disabled={isLoading}>
-          {isLoading ? 'Enregistrement...' : (recipe ? 'Modifier' : 'Créer')}
+        <Button type="submit" disabled={isLoading || uploading}>
+          {uploading ? 'Upload en cours...' : isLoading ? 'Enregistrement...' : (recipe ? 'Modifier' : 'Créer')}
         </Button>
       </div>
     </form>

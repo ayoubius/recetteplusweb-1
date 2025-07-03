@@ -7,6 +7,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Switch } from '@/components/ui/switch';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { SupabaseProduct } from '@/hooks/useSupabaseProducts';
+import FileUploadField from './FileUploadField';
+import { useSupabaseUpload } from '@/hooks/useSupabaseUpload';
 
 interface ProductFormProps {
   product?: SupabaseProduct;
@@ -21,6 +23,9 @@ const categories = [
 ];
 
 const ProductForm: React.FC<ProductFormProps> = ({ product, onSubmit, onCancel, isLoading }) => {
+  const { uploadFile, uploading, uploadProgress } = useSupabaseUpload();
+  const [selectedImageFile, setSelectedImageFile] = useState<File | null>(null);
+
   const [formData, setFormData] = useState({
     name: product?.name || '',
     image: product?.image || '',
@@ -34,12 +39,22 @@ const ProductForm: React.FC<ProductFormProps> = ({ product, onSubmit, onCancel, 
 
   const [hasPromotion, setHasPromotion] = useState(!!product?.promotion);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    let imageUrl = formData.image;
+    
+    // Upload image if selected
+    if (selectedImageFile) {
+      const uploadedUrl = await uploadFile(selectedImageFile, 'produits');
+      if (uploadedUrl) {
+        imageUrl = uploadedUrl;
+      }
+    }
     
     const cleanData: Omit<SupabaseProduct, 'id' | 'created_at'> = {
       name: formData.name,
-      image: formData.image || null,
+      image: imageUrl || null,
       price: formData.price,
       unit: formData.unit,
       category: formData.category,
@@ -86,16 +101,16 @@ const ProductForm: React.FC<ProductFormProps> = ({ product, onSubmit, onCancel, 
             </div>
           </div>
 
-          <div>
-            <Label htmlFor="image">URL de l'image</Label>
-            <Input
-              id="image"
-              type="url"
-              value={formData.image}
-              onChange={(e) => setFormData({...formData, image: e.target.value})}
-              placeholder="https://exemple.com/image.jpg"
-            />
-          </div>
+          <FileUploadField
+            label="Image du produit"
+            value={formData.image}
+            onChange={(url) => setFormData({...formData, image: url})}
+            onFileSelect={setSelectedImageFile}
+            acceptedTypes="image/*"
+            uploading={uploading}
+            uploadProgress={uploadProgress}
+            placeholder="https://exemple.com/image.jpg"
+          />
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div>
@@ -194,11 +209,11 @@ const ProductForm: React.FC<ProductFormProps> = ({ product, onSubmit, onCancel, 
           </div>
 
           <div className="flex justify-end space-x-4">
-            <Button type="button" variant="outline" onClick={onCancel}>
+            <Button type="button" variant="outline" onClick={onCancel} disabled={uploading}>
               Annuler
             </Button>
-            <Button type="submit" disabled={isLoading}>
-              {isLoading ? 'Enregistrement...' : (product ? 'Modifier' : 'Créer')}
+            <Button type="submit" disabled={isLoading || uploading}>
+              {uploading ? 'Upload en cours...' : isLoading ? 'Enregistrement...' : (product ? 'Modifier' : 'Créer')}
             </Button>
           </div>
         </form>
