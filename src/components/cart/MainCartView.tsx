@@ -10,7 +10,8 @@ import {
   Plus, 
   Minus,
   AlertCircle,
-  ArrowRight
+  ArrowRight,
+  ChefHat
 } from 'lucide-react';
 import { useMainCart } from '@/hooks/useSupabaseCart';
 import { formatCFA, DELIVERY_FEE } from '@/lib/currency';
@@ -64,6 +65,19 @@ const MainCartView = () => {
   const personalItems = cartItems.filter(item => item.cart_type === 'personal');
   const recipeItems = cartItems.filter(item => item.cart_type === 'recipe');
   const preconfiguredItems = cartItems.filter(item => item.cart_type === 'preconfigured');
+
+  // Grouper les items de recettes par panier individuel
+  const recipeCartGroups = recipeItems.reduce((groups, item) => {
+    const cartId = item.cart_id;
+    if (!groups[cartId]) {
+      groups[cartId] = {
+        cartName: item.cart_name,
+        items: []
+      };
+    }
+    groups[cartId].items.push(item);
+    return groups;
+  }, {} as Record<string, { cartName: string; items: MainCartItem[] }>);
 
   const handleOrderComplete = (orderId?: string) => {
     setShowOrderForm(false);
@@ -162,35 +176,42 @@ const MainCartView = () => {
           </Card>
         )}
 
-        {/* Paniers recettes */}
-        {recipeItems.length > 0 && (
-          <Card>
+        {/* Paniers recettes - séparés individuellement */}
+        {Object.entries(recipeCartGroups).map(([cartId, cartGroup]) => (
+          <Card key={cartId}>
             <CardHeader className="pb-3">
               <CardTitle className="text-lg flex items-center">
-                <Package className="h-4 w-4 mr-2 text-green-500" />
-                Paniers Recettes
-                <Badge variant="outline" className="ml-2">
-                  {recipeItems.length} article{recipeItems.length > 1 ? 's' : ''}
+                <ChefHat className="h-4 w-4 mr-2 text-green-500" />
+                {cartGroup.cartName}
+                <Badge variant="outline" className="ml-2 bg-green-50 text-green-700">
+                  {cartGroup.items.length} article{cartGroup.items.length > 1 ? 's' : ''}
                 </Badge>
               </CardTitle>
             </CardHeader>
             <CardContent>
               <div className="space-y-3">
-                {recipeItems.map((item) => (
-                  <div key={`recipe-${item.item_id}`} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                {cartGroup.items.map((item) => (
+                  <div key={`recipe-${item.item_id}`} className="flex items-center justify-between p-3 bg-green-50 rounded-lg border border-green-200">
                     <div className="flex-1">
-                      <h4 className="font-medium">{item.product_name}</h4>
-                      <p className="text-xs text-gray-500">De: {item.cart_name}</p>
-                      <p className="text-sm text-gray-600">
+                      <h4 className="font-medium text-green-800">{item.product_name}</h4>
+                      <p className="text-sm text-green-600">
                         {item.quantity} × {formatCFA(item.unit_price)} = {formatCFA(item.total_price)}
                       </p>
                     </div>
                   </div>
                 ))}
+                <div className="mt-3 pt-3 border-t border-green-200">
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm font-medium text-green-700">Total du panier:</span>
+                    <span className="font-bold text-green-800">
+                      {formatCFA(cartGroup.items.reduce((sum, item) => sum + (item.total_price || 0), 0))}
+                    </span>
+                  </div>
+                </div>
               </div>
             </CardContent>
           </Card>
-        )}
+        ))}
 
         {/* Paniers préconfigurés */}
         {preconfiguredItems.length > 0 && (
@@ -207,10 +228,10 @@ const MainCartView = () => {
             <CardContent>
               <div className="space-y-3">
                 {preconfiguredItems.map((item) => (
-                  <div key={`preconfigured-${item.item_id}`} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                  <div key={`preconfigured-${item.item_id}`} className="flex items-center justify-between p-3 bg-purple-50 rounded-lg border border-purple-200">
                     <div className="flex-1">
-                      <h4 className="font-medium">{item.product_name}</h4>
-                      <p className="text-sm text-gray-600">
+                      <h4 className="font-medium text-purple-800">{item.product_name}</h4>
+                      <p className="text-sm text-purple-600">
                         Panier complet - {formatCFA(item.total_price)}
                       </p>
                     </div>

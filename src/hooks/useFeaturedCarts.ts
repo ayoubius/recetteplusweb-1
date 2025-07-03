@@ -30,11 +30,12 @@ export const useFeaturedOccasionCarts = () => {
         .select('*')
         .eq('is_featured', true)
         .eq('is_active', true)
-        .eq('is_occasion', true)
         .order('name');
 
       if (error) throw error;
-      return data || [];
+      
+      // Filter occasion carts on the client side to avoid complex queries
+      return (data || []).filter(cart => (cart as any).is_occasion === true);
     },
     staleTime: 5 * 60 * 1000,
   });
@@ -50,12 +51,16 @@ export const useFeaturedVeganCart = () => {
         .select('*')
         .eq('is_featured', true)
         .eq('is_active', true)
-        .eq('is_occasion', false)
         .limit(1)
         .maybeSingle();
 
       if (error) throw error;
-      return data;
+      
+      // Filter non-occasion carts on the client side
+      if (data && !(data as any).is_occasion) {
+        return data;
+      }
+      return null;
     },
     staleTime: 5 * 60 * 1000,
   });
