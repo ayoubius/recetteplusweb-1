@@ -229,16 +229,10 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     );
 
-    // Récupérer les détails de la commande
+    // Récupérer les détails de la commande avec une requête séparée pour le profil
     const { data: order, error: orderError } = await supabaseAdmin
       .from('orders')
-      .select(`
-        *,
-        profiles:user_id (
-          display_name,
-          email
-        )
-      `)
+      .select('*')
       .eq('id', orderId)
       .single();
 
@@ -246,10 +240,19 @@ serve(async (req) => {
       throw new Error(`Commande non trouvée: ${orderError?.message}`);
     }
 
-    const profile = Array.isArray(order.profiles) ? order.profiles[0] : order.profiles;
-    
-    if (!profile?.email) {
-      throw new Error('Email utilisateur non trouvé');
+    // Récupérer le profil utilisateur séparément
+    const { data: profile, error: profileError } = await supabaseAdmin
+      .from('profiles')
+      .select('display_name, email')
+      .eq('id', order.user_id)
+      .single();
+
+    if (profileError || !profile) {
+      throw new Error(`Profil utilisateur non trouvé: ${profileError?.message}`);
+    }
+
+    if (!profile.email) {
+      throw new Error('Email utilisateur non trouvé dans le profil');
     }
 
     const emailData: EmailData = {
