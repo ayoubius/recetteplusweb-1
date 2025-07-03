@@ -53,19 +53,25 @@ const Signup = () => {
     try {
       setLoading(true);
       await signUp(email, password, displayName);
+      // L'utilisateur n'est plus automatiquement connecté
+      // Il doit vérifier son email d'abord
       toast({
         title: "Inscription réussie",
-        description: "Vérifiez votre email pour confirmer votre compte avant de vous connecter"
+        description: "Un email de vérification a été envoyé à votre adresse. Veuillez vérifier votre boîte de réception avant de vous connecter.",
+        variant: "default"
       });
+      // Rediriger vers la page de connexion au lieu de la page d'accueil
       navigate('/login');
     } catch (error: any) {
       let errorMessage = "Une erreur est survenue";
-      if (error.code === 'auth/email-already-in-use') {
+      if (error.message?.includes('already registered')) {
         errorMessage = "Cette adresse email est déjà utilisée";
-      } else if (error.code === 'auth/weak-password') {
+      } else if (error.message?.includes('weak-password')) {
         errorMessage = "Le mot de passe est trop faible";
-      } else if (error.code === 'auth/invalid-email') {
+      } else if (error.message?.includes('invalid-email')) {
         errorMessage = "Adresse email invalide";
+      } else if (error.message) {
+        errorMessage = error.message;
       }
       
       toast({
@@ -82,6 +88,7 @@ const Signup = () => {
     try {
       setLoading(true);
       await loginWithGoogle();
+      // Google OAuth gère automatiquement la vérification
       toast({
         title: "Inscription réussie",
         description: "Bienvenue sur Recette+ !"
@@ -208,6 +215,9 @@ const Signup = () => {
               <Link to="/login" className="text-orange-500 hover:text-orange-600 font-medium">
                 Se connecter
               </Link>
+            </p>
+            <p className="text-xs text-gray-500 mt-2">
+              Après inscription, vérifiez votre email avant de vous connecter
             </p>
           </div>
         </CardContent>

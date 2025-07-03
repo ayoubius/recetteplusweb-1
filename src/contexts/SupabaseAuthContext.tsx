@@ -40,7 +40,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const signUp = async (email: string, password: string, displayName?: string) => {
     try {
-      const { error } = await supabase.auth.signUp({
+      const { data, error } = await supabase.auth.signUp({
         email,
         password,
         options: {
@@ -48,15 +48,19 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
             display_name: displayName,
             full_name: displayName
           },
-          emailRedirectTo: `${window.location.origin}/`
+          emailRedirectTo: `${window.location.origin}/verify-email`
         }
       });
 
       if (error) throw error;
 
+      // Ne pas connecter l'utilisateur automatiquement
+      // L'utilisateur doit d'abord vérifier son email
+      console.log('User signed up:', data.user?.id, 'Email confirmed:', data.user?.email_confirmed_at);
+      
       toast({
         title: "Inscription réussie",
-        description: "Vérifiez votre email pour confirmer votre compte"
+        description: "Vérifiez votre boîte email pour confirmer votre compte avant de vous connecter"
       });
     } catch (error: any) {
       console.error('Error during sign up:', error);
@@ -66,12 +70,19 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const login = async (email: string, password: string) => {
     try {
-      const { error } = await supabase.auth.signInWithPassword({
+      const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password
       });
 
       if (error) throw error;
+
+      // Vérifier si l'email est confirmé
+      if (data.user && !data.user.email_confirmed_at) {
+        // Déconnecter immédiatement l'utilisateur si l'email n'est pas confirmé
+        await supabase.auth.signOut();
+        throw new Error('Veuillez vérifier votre email avant de vous connecter. Consultez votre boîte de réception.');
+      }
     } catch (error: any) {
       console.error('Error during login:', error);
       throw error;
@@ -200,18 +211,37 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     // Set up auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
-        console.log('Auth state changed:', event, session?.user?.id);
-        setSession(session);
-        setCurrentUser(session?.user ?? null);
+        console.log('Auth state changed:', event, session?.user?.id, 'Email confirmed:', session?.user?.email_confirmed_at);
+        
+        // Ne définir la session que si l'email est confirmé
+        if (session?.user?.email_confirmed_at) {
+          setSession(session);
+          setCurrentUser(session.user);
+        } else {
+          // Si l'email n'est pas confirmé, déconnecter
+          setSession(null);
+          setCurrentUser(null);
+          if (session) {
+            console.log('Email not confirmed, signing out');
+            await supabase.auth.signOut();
+          }
+        }
         setLoading(false);
       }
     );
 
     // Get initial session
     supabase.auth.getSession().then(({ data: { session } }) => {
-      console.log('Initial session:', session?.user?.id);
-      setSession(session);
-      setCurrentUser(session?.user ?? null);
+      console.log('Initial session:', session?.user?.id, 'Email confirmed:', session?.user?.email_confirmed_at);
+      
+      // Ne définir la session que si l'email est confirmé
+      if (session?.user?.email_confirmed_at) {
+        setSession(session);
+        setCurrentUser(session.user);
+      } else {
+        setSession(null);
+        setCurrentUser(null);
+      }
       setLoading(false);
     });
 
