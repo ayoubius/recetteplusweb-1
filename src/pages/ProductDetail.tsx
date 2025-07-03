@@ -24,7 +24,7 @@ const ProductDetail = () => {
   if (!product) {
     return (
       <>
-        <Header />
+       
         <div className="min-h-screen bg-gradient-to-br from-amber-50 via-orange-50 to-amber-100 flex items-center justify-center">
           <div className="text-center">
             <h2 className="text-2xl font-bold text-gray-600 mb-4">Produit non trouvé</h2>
@@ -39,7 +39,7 @@ const ProductDetail = () => {
 
   return (
     <>
-      <Header />
+      
       <div className="min-h-screen bg-gradient-to-br from-amber-50 via-orange-50 to-amber-100">
         <div className="container mx-auto px-4 py-8">
           {/* Back Button */}
