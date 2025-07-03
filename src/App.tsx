@@ -1,10 +1,12 @@
+
 import React from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Toaster } from '@/components/ui/sonner';
 import { AuthProvider } from '@/contexts/AuthContext';
 import { AuthProvider as SupabaseAuthProvider } from '@/contexts/SupabaseAuthContext';
-import Home from '@/pages/Home';
+import Layout from '@/components/Layout';
+import Home from '@/pages/Index';
 import About from '@/pages/About';
 import Products from '@/pages/Products';
 import Recipes from '@/pages/Recipes';
@@ -48,44 +50,44 @@ function App() {
           <BrowserRouter>
             <Toaster />
             <Routes>
-              <Route path="/" element={<Home />} />
-              <Route path="/about" element={<About />} />
+              <Route path="/" element={<Layout><Home /></Layout>} />
+              <Route path="/about" element={<Layout><About /></Layout>} />
               {/* Routes en français pour correspondre aux liens du Header */}
-              <Route path="/produits" element={<Products />} />
-              <Route path="/produits/:id" element={<ProductDetails />} />
-              <Route path="/recettes" element={<Recipes />} />
-              <Route path="/recettes/:id" element={<RecipeDetails />} />
-              <Route path="/videos" element={<VideoPage />} />
-              <Route path="/videos/:id" element={<VideoDetails />} />
+              <Route path="/produits" element={<Layout><Products /></Layout>} />
+              <Route path="/produits/:id" element={<Layout><ProductDetails /></Layout>} />
+              <Route path="/recettes" element={<Layout><Recipes /></Layout>} />
+              <Route path="/recettes/:id" element={<Layout><RecipeDetails /></Layout>} />
+              <Route path="/videos" element={<Layout><VideoPage /></Layout>} />
+              <Route path="/videos/:id" element={<Layout><VideoDetails /></Layout>} />
               {/* Routes alternatives en anglais pour la compatibilité */}
-              <Route path="/products" element={<Products />} />
-              <Route path="/products/:id" element={<ProductDetails />} />
-              <Route path="/recipes" element={<Recipes />} />
-              <Route path="/recipes/:id" element={<RecipeDetails />} />
-              <Route path="/categories/:category" element={<Products />} />
-              <Route path="/search" element={<Products />} />
+              <Route path="/products" element={<Layout><Products /></Layout>} />
+              <Route path="/products/:id" element={<Layout><ProductDetails /></Layout>} />
+              <Route path="/recipes" element={<Layout><Recipes /></Layout>} />
+              <Route path="/recipes/:id" element={<Layout><RecipeDetails /></Layout>} />
+              <Route path="/categories/:category" element={<Layout><Products /></Layout>} />
+              <Route path="/search" element={<Layout><Products /></Layout>} />
               <Route path="/login" element={<Login />} />
               <Route path="/register" element={<Register />} />
-              <Route path="/profile" element={<Profile />} />
-              <Route path="/panier" element={<CartPage />} />
-              <Route path="/cart" element={<CartPage />} />
-              <Route path="/checkout" element={<CheckoutPage />} />
-              <Route path="/order-confirmation" element={<OrderConfirmationPage />} />
-              <Route path="/favoris" element={<NotFound />} />
+              <Route path="/profile" element={<Layout><Profile /></Layout>} />
+              <Route path="/panier" element={<Layout><CartPage /></Layout>} />
+              <Route path="/cart" element={<Layout><CartPage /></Layout>} />
+              <Route path="/checkout" element={<Layout><CheckoutPage /></Layout>} />
+              <Route path="/order-confirmation" element={<Layout><OrderConfirmationPage /></Layout>} />
+              <Route path="/favoris" element={<Layout><NotFound /></Layout>} />
               
               {/* Admin Routes */}
-              <Route path="/admin" element={<AdminDashboard />} />
-              <Route path="/admin/users" element={<UserManagement />} />
-              <Route path="/admin/products" element={<ProductManagement />} />
-              <Route path="/admin/recipes" element={<RecipeManagement />} />
-              <Route path="/admin/videos" element={<VideoManagement />} />
-              <Route path="/admin/orders" element={<OrderManagement />} />
-              <Route path="/admin/delivery" element={<DeliveryManagement />} />
-              <Route path="/admin/categories" element={<CategoryManagement />} />
-              <Route path="/admin/newsletter" element={<NewsletterManagement />} />
-              <Route path="/admin/preconfigured-carts" element={<PreconfiguredCartManagement />} />
+              <Route path="/admin" element={<Layout><AdminDashboard /></Layout>} />
+              <Route path="/admin/users" element={<Layout><UserManagement /></Layout>} />
+              <Route path="/admin/products" element={<Layout><ProductManagement /></Layout>} />
+              <Route path="/admin/recipes" element={<Layout><RecipeManagement /></Layout>} />
+              <Route path="/admin/videos" element={<Layout><VideoManagement /></Layout>} />
+              <Route path="/admin/orders" element={<Layout><OrderManagement /></Layout>} />
+              <Route path="/admin/delivery" element={<Layout><DeliveryManagement /></Layout>} />
+              <Route path="/admin/categories" element={<Layout><CategoryManagement /></Layout>} />
+              <Route path="/admin/newsletter" element={<Layout><NewsletterManagement /></Layout>} />
+              <Route path="/admin/preconfigured-carts" element={<Layout><PreconfiguredCartManagement /></Layout>} />
               
-              <Route path="*" element={<NotFound />} />
+              <Route path="*" element={<Layout><NotFound /></Layout>} />
             </Routes>
           </BrowserRouter>
         </AuthProvider>
