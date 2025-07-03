@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
-import { Package, CreditCard, Smartphone, MapPin } from 'lucide-react';
+import { Package, CreditCard, MapPin } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/SupabaseAuthContext';
@@ -29,7 +29,6 @@ const SimpleOrderForm: React.FC<SimpleOrderFormProps> = ({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [location, setLocation] = useState<{ latitude: number; longitude: number } | null>(null);
   const [notes, setNotes] = useState('');
-  const [paymentMethod, setPaymentMethod] = useState<'cash' | 'orange_money'>('cash');
 
   const total = subtotal + DELIVERY_FEE;
 
@@ -42,8 +41,7 @@ const SimpleOrderForm: React.FC<SimpleOrderFormProps> = ({
       const qrData = JSON.stringify({
         orderId: orderId,
         timestamp: new Date().toISOString(),
-        amount: total,
-        paymentMethod
+        amount: total
       });
       
       return await QRCode.toDataURL(qrData, {
@@ -191,13 +189,9 @@ const SimpleOrderForm: React.FC<SimpleOrderFormProps> = ({
       // Nettoyer tous les paniers APRÈS la création réussie de la commande
       await clearAllCarts();
 
-      const paymentText = paymentMethod === 'orange_money' 
-        ? 'Orange Money (bientôt disponible) - Paiement à la livraison pour le moment'
-        : 'Paiement à la livraison en espèces';
-
       toast({
         title: "Commande créée avec succès !",
-        description: `Commande #${order.id.slice(0, 8)} - ${paymentText}`,
+        description: `Commande #${order.id.slice(0, 8)} - Paiement à la livraison`,
         duration: 5000
       });
 
@@ -231,57 +225,22 @@ const SimpleOrderForm: React.FC<SimpleOrderFormProps> = ({
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-6">
-            {/* Méthode de paiement */}
+            {/* Méthode de paiement - Uniquement espèces */}
             <div>
               <Label className="text-base font-semibold mb-3 block">
                 Méthode de paiement
               </Label>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div
-                  className={`p-4 border-2 rounded-lg cursor-pointer transition-all ${
-                    paymentMethod === 'cash'
-                      ? 'border-orange-500 bg-orange-50'
-                      : 'border-gray-200 hover:border-gray-300'
-                  }`}
-                  onClick={() => setPaymentMethod('cash')}
-                >
+              <div className="grid grid-cols-1 gap-4">
+                <div className="p-4 border-2 border-orange-500 bg-orange-50 rounded-lg">
                   <div className="flex items-center space-x-3">
                     <CreditCard className="h-5 w-5 text-orange-500" />
                     <div>
                       <p className="font-medium">Paiement à la livraison</p>
-                      <p className="text-sm text-gray-600">Espèces</p>
-                    </div>
-                  </div>
-                </div>
-                
-                <div
-                  className={`p-4 border-2 rounded-lg cursor-pointer transition-all ${
-                    paymentMethod === 'orange_money'
-                      ? 'border-orange-500 bg-orange-50'
-                      : 'border-gray-200 hover:border-gray-300'
-                  }`}
-                  onClick={() => setPaymentMethod('orange_money')}
-                >
-                  <div className="flex items-center space-x-3">
-                    <Smartphone className="h-5 w-5 text-orange-500" />
-                    <div>
-                      <p className="font-medium">Orange Money</p>
-                      <Badge variant="secondary" className="text-xs">
-                        Bientôt disponible
-                      </Badge>
+                      <p className="text-sm text-gray-600">Espèces uniquement</p>
                     </div>
                   </div>
                 </div>
               </div>
-              
-              {paymentMethod === 'orange_money' && (
-                <div className="mt-3 p-3 bg-blue-50 border border-blue-200 rounded-lg">
-                  <p className="text-sm text-blue-800">
-                    <strong>Orange Money</strong> sera bientôt disponible. 
-                    Pour le moment, le paiement se fera à la livraison.
-                  </p>
-                </div>
-              )}
             </div>
 
             {/* Notes de livraison */}
@@ -319,16 +278,9 @@ const SimpleOrderForm: React.FC<SimpleOrderFormProps> = ({
               </div>
               
               <div className="flex items-center space-x-2 mt-3">
-                {paymentMethod === 'cash' ? (
-                  <CreditCard className="h-4 w-4 text-green-500" />
-                ) : (
-                  <Smartphone className="h-4 w-4 text-orange-500" />
-                )}
+                <CreditCard className="h-4 w-4 text-green-500" />
                 <p className="text-sm text-gray-600">
-                  {paymentMethod === 'orange_money' 
-                    ? 'Paiement Orange Money (bientôt disponible)'
-                    : 'Paiement à la livraison en espèces'
-                  }
+                  Paiement à la livraison en espèces
                 </p>
               </div>
             </div>
