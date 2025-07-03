@@ -245,7 +245,7 @@ export const NewsletterEmail = ({
             fontSize: '12px',
             margin: '0'
           }}>
-            © 2024 Recette+ - Tous droits réservés<br/>
+            © 2025 Recette+ - Tous droits réservés<br/>
             {unsubscribeUrl && (
               <>
                 <a href={unsubscribeUrl} style={{ color: '#F97316', textDecoration: 'none' }}>

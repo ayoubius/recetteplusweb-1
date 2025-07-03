@@ -1,4 +1,3 @@
-
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
@@ -130,7 +129,7 @@ const getValidationEmailHTML = (userName: string, orderNumber: string, items: an
         <div style="text-align: center; margin-top: 30px; padding-top: 20px; border-top: 1px solid #ddd;">
           <p style="color: #666; font-size: 14px;">
             Merci de faire confiance à Recette+ pour vos achats d'ingrédients !<br>
-            © 2024 Recette+ - Tous droits réservés
+            © 2025 Recette+ - Tous droits réservés
           </p>
         </div>
       </div>
@@ -201,7 +200,7 @@ const getDeliveryEmailHTML = (userName: string, orderNumber: string, items: any[
           <p style="color: #666; font-size: 14px;">
             Merci de faire confiance à Recette+ !<br>
             À bientôt pour de nouvelles commandes.<br>
-            © 2024 Recette+ - Tous droits réservés
+            © 2025 Recette+ - Tous droits réservés
           </p>
         </div>
       </div>

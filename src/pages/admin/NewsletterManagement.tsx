@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -253,7 +252,7 @@ const NewsletterManagement = () => {
                 Vous recevez cet email car vous êtes abonné à la newsletter de Recette+
               </p>
               <p style="color: #9CA3AF; font-size: 13px; margin: 0;">
-                © 2024 Recette+ - Tous droits réservés<br/>
+                © 2025 Recette+ - Tous droits réservés<br/>
                 <a href="#" class="unsubscribe">Se désabonner</a> | 
                 <a href="#" class="unsubscribe">Modifier mes préférences</a>
               </p>

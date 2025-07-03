@@ -2,6 +2,19 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 
+export interface OccasionCart {
+  id: string;
+  name: string;
+  category: string;
+  description?: string;
+  image?: string;
+  items: any[];
+  total_price?: number;
+  is_active?: boolean;
+  is_featured?: boolean;
+  created_at: string;
+}
+
 export const useOccasionCarts = () => {
   return useQuery({
     queryKey: ['occasion-carts'],
@@ -9,33 +22,11 @@ export const useOccasionCarts = () => {
       const { data, error } = await supabase
         .from('preconfigured_carts')
         .select('*')
-        .eq('is_featured', true)
         .eq('is_active', true)
-        .eq('is_occasion', true)
-        .order('name');
+        .order('created_at', { ascending: false });
 
       if (error) throw error;
-      return data || [];
-    },
-    staleTime: 5 * 60 * 1000,
-  });
-};
-
-export const useVeganCart = () => {
-  return useQuery({
-    queryKey: ['vegan-cart'],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('preconfigured_carts')
-        .select('*')
-        .eq('is_featured', true)
-        .eq('is_active', true)
-        .eq('is_occasion', false)
-        .limit(1)
-        .maybeSingle();
-
-      if (error) throw error;
-      return data;
+      return data as OccasionCart[];
     },
     staleTime: 5 * 60 * 1000,
   });

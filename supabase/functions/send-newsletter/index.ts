@@ -244,7 +244,7 @@ Deno.serve(async (req) => {
               Vous recevez cet email car vous êtes abonné à la newsletter de Recette+
             </p>
             <p style="color: #9CA3AF; font-size: 12px; margin: 0;">
-              © 2024 Recette+ - Tous droits réservés<br/>
+              © 2025 Recette+ - Tous droits réservés<br/>
               <a href="#" class="unsubscribe">Se désabonner</a> | 
               <a href="#" class="unsubscribe">Modifier mes préférences</a>
             </p>
@@ -256,8 +256,8 @@ Deno.serve(async (req) => {
     `
 
     // Configuration Brevo API
-    const brevoApiKey = Deno.env.get('BREVO_API_KEY')
-    const senderEmail = "vicaire.des.ombres@gmail.com"
+    const brevoApiKey = Deno.env.get('BREVO_PASSWORD') // La clé API est stockée dans BREVO_PASSWORD
+    const senderEmail = Deno.env.get('BREVO_LOGIN') || "noreply@recetteplus.com"
 
     if (!brevoApiKey) {
       throw new Error('Configuration Brevo API manquante')
