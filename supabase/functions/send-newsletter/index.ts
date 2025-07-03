@@ -50,32 +50,23 @@ Deno.serve(async (req) => {
 
     const { title, subject, content }: NewsletterData = await req.json()
 
-    // Récupérer d'abord tous les IDs d'admins
-    const { data: adminIds, error: adminError } = await supabase
-      .from('admin_permissions')
-      .select('user_id')
+    console.log('Début envoi newsletter:', { title, subject })
 
-    if (adminError) {
-      console.error('Erreur récupération admins:', adminError)
-      throw new Error('Erreur récupération des administrateurs')
-    }
-
-    const adminUserIds = adminIds?.map(admin => admin.user_id) || []
-
-    // Récupérer tous les utilisateurs avec newsletter activée, en excluant les admins
+    // Récupérer tous les utilisateurs avec newsletter activée
+    // Nouvelle approche : récupérer tous les profils avec newsletter_enabled = true
     const { data: users, error: usersError } = await supabase
       .from('profiles')
-      .select('email, display_name')
+      .select('email, display_name, id')
       .not('email', 'is', null)
       .eq('preferences->newsletter_enabled', true)
-      .not('id', 'in', `(${adminUserIds.map(id => `"${id}"`).join(',')})`)
+      .neq('role', 'admin') // Exclure seulement les admins directs
 
     if (usersError) {
       console.error('Erreur récupération utilisateurs:', usersError)
       throw new Error('Erreur récupération des utilisateurs')
     }
 
-    console.log(`Envoi newsletter à ${users?.length || 0} utilisateurs non-admins`)
+    console.log(`Utilisateurs trouvés: ${users?.length || 0}`)
 
     if (!users || users.length === 0) {
       // Enregistrer la campagne même s'il n'y a pas d'abonnés
@@ -95,7 +86,7 @@ Deno.serve(async (req) => {
       }
 
       return new Response(
-        JSON.stringify({ success: true, message: 'Aucun abonné non-admin à la newsletter' }),
+        JSON.stringify({ success: true, message: 'Aucun abonné trouvé pour la newsletter' }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       )
     }
@@ -147,11 +138,6 @@ Deno.serve(async (req) => {
         .logo { 
           height: 60px; 
           margin-bottom: 20px; 
-          animation: logoFloat 3s ease-in-out infinite;
-        }
-        @keyframes logoFloat {
-          0%, 100% { transform: translateY(0px); }
-          50% { transform: translateY(-5px); }
         }
         .content { 
           padding: 40px 30px; 
@@ -193,7 +179,6 @@ Deno.serve(async (req) => {
           font-weight: bold;
           font-size: 16px;
           margin-top: 15px;
-          transition: all 0.3s ease;
         }
         .social-links {
           margin: 20px 0;
@@ -256,7 +241,7 @@ Deno.serve(async (req) => {
     `
 
     // Configuration Brevo API
-    const brevoApiKey = Deno.env.get('BREVO_PASSWORD') // La clé API est stockée dans BREVO_PASSWORD
+    const brevoApiKey = Deno.env.get('BREVO_PASSWORD')
     const senderEmail = Deno.env.get('BREVO_LOGIN') || "noreply@recetteplus.com"
 
     if (!brevoApiKey) {
@@ -269,50 +254,48 @@ Deno.serve(async (req) => {
     const errors: string[] = [];
     
     try {
-      // Envoyer les emails par lot pour éviter les limites de taux
-      const batchSize = 10;
-      for (let i = 0; i < users.length; i += batchSize) {
-        const batch = users.slice(i, i + batchSize);
-        
-        // Préparer les destinataires pour Brevo
-        const recipients = batch.map(user => ({
-          email: user.email,
-          name: user.display_name || user.email
-        }));
+      // Envoyer les emails un par un pour un meilleur contrôle des erreurs
+      for (const userData of users) {
+        try {
+          const brevoPayload = {
+            sender: {
+              email: senderEmail,
+              name: "Recette+"
+            },
+            to: [{
+              email: userData.email,
+              name: userData.display_name || userData.email
+            }],
+            subject: subject,
+            htmlContent: emailTemplate,
+            textContent: content
+          };
 
-        const brevoPayload = {
-          sender: {
-            email: senderEmail,
-            name: "Recette+"
-          },
-          to: recipients,
-          subject: subject,
-          htmlContent: emailTemplate,
-          textContent: content
-        };
+          const brevoResponse = await fetch('https://api.brevo.com/v3/smtp/email', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'api-key': brevoApiKey
+            },
+            body: JSON.stringify(brevoPayload)
+          });
 
-        const brevoResponse = await fetch('https://api.brevo.com/v3/smtp/email', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'api-key': brevoApiKey
-          },
-          body: JSON.stringify(brevoPayload)
-        });
+          if (brevoResponse.ok) {
+            const responseData = await brevoResponse.json();
+            console.log(`Email envoyé à ${userData.email}:`, responseData);
+            emailsSent++;
+          } else {
+            const errorData = await brevoResponse.text();
+            console.error(`Erreur Brevo pour ${userData.email}:`, errorData);
+            errors.push(`${userData.email}: ${errorData}`);
+          }
 
-        if (brevoResponse.ok) {
-          const responseData = await brevoResponse.json();
-          console.log(`Lot ${Math.floor(i/batchSize) + 1} envoyé avec succès:`, responseData);
-          emailsSent += batch.length;
-        } else {
-          const errorData = await brevoResponse.text();
-          console.error(`Erreur Brevo pour le lot ${Math.floor(i/batchSize) + 1}:`, errorData);
-          errors.push(`Lot ${Math.floor(i/batchSize) + 1}: ${errorData}`);
-        }
+          // Petite pause entre les emails pour éviter les limites de taux
+          await new Promise(resolve => setTimeout(resolve, 100));
 
-        // Pause entre les lots pour respecter les limites de taux
-        if (i + batchSize < users.length) {
-          await new Promise(resolve => setTimeout(resolve, 1000));
+        } catch (emailError) {
+          console.error(`Erreur envoi email à ${userData.email}:`, emailError);
+          errors.push(`${userData.email}: ${emailError.message}`);
         }
       }
 
@@ -323,7 +306,7 @@ Deno.serve(async (req) => {
       }
 
     } catch (brevoError) {
-      console.error('Erreur Brevo:', brevoError)
+      console.error('Erreur Brevo globale:', brevoError)
       throw new Error('Erreur lors de l\'envoi des emails via Brevo')
     }
 
@@ -344,14 +327,16 @@ Deno.serve(async (req) => {
     }
 
     const responseMessage = errors.length > 0 
-      ? `Newsletter envoyée à ${emailsSent} abonnés non-admins avec ${errors.length} erreurs`
-      : `Newsletter envoyée à ${emailsSent} abonnés non-admins`
+      ? `Newsletter envoyée à ${emailsSent}/${users.length} abonnés. ${errors.length} erreurs détectées.`
+      : `Newsletter envoyée avec succès à ${emailsSent} abonnés.`
 
     return new Response(
       JSON.stringify({ 
         success: true, 
         message: responseMessage,
-        errors: errors.length > 0 ? errors : undefined
+        sent_count: emailsSent,
+        total_subscribers: users.length,
+        errors: errors.length > 0 ? errors.slice(0, 5) : undefined // Limiter les erreurs affichées
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     )
