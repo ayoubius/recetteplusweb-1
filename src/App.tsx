@@ -6,6 +6,7 @@ import { Toaster } from '@/components/ui/sonner';
 import { AuthProvider } from '@/contexts/AuthContext';
 import { AuthProvider as SupabaseAuthProvider } from '@/contexts/SupabaseAuthContext';
 import Layout from '@/components/Layout';
+import AdminLayout from '@/components/AdminLayout';
 import Home from '@/pages/Index';
 import About from '@/pages/About';
 import Products from '@/pages/Products';
@@ -75,17 +76,17 @@ function App() {
               <Route path="/order-confirmation" element={<Layout><OrderConfirmationPage /></Layout>} />
               <Route path="/favoris" element={<Layout><NotFound /></Layout>} />
               
-              {/* Admin Routes */}
-              <Route path="/admin" element={<Layout><AdminDashboard /></Layout>} />
-              <Route path="/admin/users" element={<Layout><UserManagement /></Layout>} />
-              <Route path="/admin/products" element={<Layout><ProductManagement /></Layout>} />
-              <Route path="/admin/recipes" element={<Layout><RecipeManagement /></Layout>} />
-              <Route path="/admin/videos" element={<Layout><VideoManagement /></Layout>} />
-              <Route path="/admin/orders" element={<Layout><OrderManagement /></Layout>} />
-              <Route path="/admin/delivery" element={<Layout><DeliveryManagement /></Layout>} />
-              <Route path="/admin/categories" element={<Layout><CategoryManagement /></Layout>} />
-              <Route path="/admin/newsletter" element={<Layout><NewsletterManagement /></Layout>} />
-              <Route path="/admin/preconfigured-carts" element={<Layout><PreconfiguredCartManagement /></Layout>} />
+              {/* Admin Routes avec AdminLayout */}
+              <Route path="/admin" element={<AdminLayout><AdminDashboard /></AdminLayout>} />
+              <Route path="/admin/users" element={<AdminLayout><UserManagement /></AdminLayout>} />
+              <Route path="/admin/products" element={<AdminLayout><ProductManagement /></AdminLayout>} />
+              <Route path="/admin/recipes" element={<AdminLayout><RecipeManagement /></AdminLayout>} />
+              <Route path="/admin/videos" element={<AdminLayout><VideoManagement /></AdminLayout>} />
+              <Route path="/admin/orders" element={<AdminLayout><OrderManagement /></AdminLayout>} />
+              <Route path="/admin/delivery" element={<AdminLayout><DeliveryManagement /></AdminLayout>} />
+              <Route path="/admin/categories" element={<AdminLayout><CategoryManagement /></AdminLayout>} />
+              <Route path="/admin/newsletter" element={<AdminLayout><NewsletterManagement /></AdminLayout>} />
+              <Route path="/admin/preconfigured-carts" element={<AdminLayout><PreconfiguredCartManagement /></AdminLayout>} />
               
               <Route path="*" element={<Layout><NotFound /></Layout>} />
             </Routes>
