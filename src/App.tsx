@@ -9,7 +9,6 @@ import Home from '@/pages/Home';
 import About from '@/pages/About';
 import Products from '@/pages/Products';
 import Recipes from '@/pages/Recipes';
-import Contact from '@/pages/Contact';
 import Login from '@/pages/Login';
 import Register from '@/pages/Signup';
 import Profile from '@/pages/Profile';
@@ -62,7 +61,6 @@ function App() {
               <Route path="/videos/:id" element={<VideoDetails />} />
               <Route path="/categories/:category" element={<CategoryPage />} />
               <Route path="/search" element={<SearchPage />} />
-              <Route path="/contact" element={<Contact />} />
               <Route path="/login" element={<Login />} />
               <Route path="/register" element={<Register />} />
               <Route path="/profile" element={<Profile />} />
