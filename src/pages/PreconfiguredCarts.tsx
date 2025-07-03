@@ -41,8 +41,8 @@ const PreconfiguredCarts = () => {
   const filteredCarts = allCarts.filter(cart => {
     const matchesCategory = selectedCategory === 'Tous' || cart.category === selectedCategory;
     const matchesType = selectedType === 'Tous' || 
-      (selectedType === 'Par Occasion' && cart.is_occasion) ||
-      (selectedType === 'Autres' && !cart.is_occasion);
+      (selectedType === 'Par Occasion' && (cart as any).is_occasion) ||
+      (selectedType === 'Autres' && !(cart as any).is_occasion);
     
     return matchesCategory && matchesType;
   });
@@ -180,7 +180,7 @@ const PreconfiguredCarts = () => {
                     className="w-full h-48 object-cover group-hover:scale-110 transition-transform duration-300"
                   />
                   <div className="absolute top-3 left-3 flex gap-2">
-                    {cart.is_occasion ? (
+                    {(cart as any).is_occasion ? (
                       <Badge className="bg-orange-500 text-white">
                         <Star className="h-3 w-3 mr-1" />
                         Occasion
@@ -211,7 +211,7 @@ const PreconfiguredCarts = () => {
                   </div>
 
                   <div className="mb-4">
-                    <div className={`text-2xl font-bold text-center ${cart.is_occasion ? 'text-orange-500' : 'text-green-500'}`}>
+                    <div className={`text-2xl font-bold text-center ${(cart as any).is_occasion ? 'text-orange-500' : 'text-green-500'}`}>
                       {formatPrice(cart.total_price || 0)}
                     </div>
                   </div>
@@ -220,7 +220,7 @@ const PreconfiguredCarts = () => {
                     <Button 
                       onClick={() => handleAddCartToPersonal(cart.id, cart.name)}
                       disabled={!currentUser || isAdding}
-                      className={`w-full text-white ${cart.is_occasion ? 'bg-orange-500 hover:bg-orange-600' : 'bg-green-500 hover:bg-green-600'}`}
+                      className={`w-full text-white ${(cart as any).is_occasion ? 'bg-orange-500 hover:bg-orange-600' : 'bg-green-500 hover:bg-green-600'}`}
                     >
                       <ShoppingCart className="h-4 w-4 mr-2" />
                       {isAdding ? 'Ajout...' : 'Ajouter au panier'}
