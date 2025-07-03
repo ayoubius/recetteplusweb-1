@@ -2,27 +2,9 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 
-export const useFeaturedCarts = () => {
+export const useOccasionCarts = () => {
   return useQuery({
-    queryKey: ['featured-carts'],
-    queryFn: async () => {
-      const { data } = await supabase
-        .from('preconfigured_carts')
-        .select('*')
-        .eq('is_featured', true)
-        .eq('is_active', true)
-        .order('name');
-
-      return data || [];
-    },
-    staleTime: 5 * 60 * 1000,
-  });
-};
-
-// Hook séparé pour les paniers par occasion
-export const useFeaturedOccasionCarts = () => {
-  return useQuery({
-    queryKey: ['featured-occasion-carts'],
+    queryKey: ['occasion-carts'],
     queryFn: async () => {
       const { data } = await supabase
         .from('preconfigured_carts')
@@ -38,10 +20,9 @@ export const useFeaturedOccasionCarts = () => {
   });
 };
 
-// Hook pour le panier vegan (non-occasion)
-export const useFeaturedVeganCart = () => {
+export const useVeganCart = () => {
   return useQuery({
-    queryKey: ['featured-vegan-cart'],
+    queryKey: ['vegan-cart'],
     queryFn: async () => {
       const { data } = await supabase
         .from('preconfigured_carts')

@@ -4,108 +4,50 @@ import { Link } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { ShoppingCart, Package, Users, ArrowRight, ChevronLeft, ChevronRight } from 'lucide-react';
+import { ShoppingCart, Package, Users, ArrowRight, ChevronLeft, ChevronRight, Star, Heart } from 'lucide-react';
 import { useAuth } from '@/contexts/SupabaseAuthContext';
 import { useToast } from '@/hooks/use-toast';
+import { usePreconfiguredCarts } from '@/hooks/useSupabaseCart';
+import { useQuery } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
 import { formatPrice } from '@/lib/currency';
-
-interface PreconfiguredCart {
-  id: string;
-  name: string;
-  description: string;
-  image: string;
-  items: Array<{
-    productId: string;
-    quantity: number;
-  }>;
-  totalPrice: number;
-  estimatedServings: number;
-  category: string;
-}
-
-// Données d'exemple pour les paniers préconfigurés
-const preconfiguredCarts: PreconfiguredCart[] = [
-  {
-    id: '1',
-    name: 'Panier Famille Premium',
-    description: 'Tout le nécessaire pour une semaine de repas équilibrés pour une famille de 4 personnes',
-    image: 'https://images.unsplash.com/photo-1542838132-92c53300491e?w=500',
-    items: [
-      { productId: '1', quantity: 2 },
-      { productId: '2', quantity: 3 },
-      { productId: '3', quantity: 1 },
-    ],
-    totalPrice: 25000,
-    estimatedServings: 28,
-    category: 'Famille'
-  },
-  {
-    id: '2',
-    name: 'Panier Solo Healthy',
-    description: 'Sélection de produits sains pour une personne active pendant une semaine',
-    image: 'https://images.unsplash.com/photo-1506617420156-8e4536971650?w=500',
-    items: [
-      { productId: '4', quantity: 1 },
-      { productId: '5', quantity: 2 },
-    ],
-    totalPrice: 12000,
-    estimatedServings: 7,
-    category: 'Solo'
-  },
-  {
-    id: '3',
-    name: 'Panier Végétarien',
-    description: 'Une sélection de légumes frais et de protéines végétales pour 2 personnes',
-    image: 'https://images.unsplash.com/photo-1540420773420-3366772f4999?w=500',
-    items: [
-      { productId: '6', quantity: 3 },
-      { productId: '7', quantity: 2 },
-    ],
-    totalPrice: 18000,
-    estimatedServings: 14,
-    category: 'Végétarien'
-  },
-  {
-    id: '4',
-    name: 'Panier Express',
-    description: 'Produits prêts à cuisiner pour des repas rapides et savoureux',
-    image: 'https://images.unsplash.com/photo-1563379091339-03246963d25a?w=500',
-    items: [
-      { productId: '8', quantity: 4 },
-      { productId: '9', quantity: 1 },
-    ],
-    totalPrice: 15000,
-    estimatedServings: 12,
-    category: 'Express'
-  },
-  {
-    id: '5',
-    name: 'Panier Traditionnel',
-    description: 'Ingrédients authentiques pour préparer des plats traditionnels maliens',
-    image: 'https://images.unsplash.com/photo-1574653853027-5d3b24829dd2?w=500',
-    items: [
-      { productId: '10', quantity: 2 },
-      { productId: '11', quantity: 3 },
-    ],
-    totalPrice: 22000,
-    estimatedServings: 20,
-    category: 'Traditionnel'
-  },
-];
 
 const PreconfiguredCarts = () => {
   const { currentUser } = useAuth();
   const { toast } = useToast();
+  const { addPreconfiguredCartToPersonal, isAdding } = usePreconfiguredCarts();
   const [selectedCategory, setSelectedCategory] = useState<string>('Tous');
+  const [selectedType, setSelectedType] = useState<string>('Tous');
   const scrollRef = useRef<HTMLDivElement>(null);
 
-  const categories = ['Tous', 'Famille', 'Solo', 'Végétarien', 'Express', 'Traditionnel'];
+  // Récupérer tous les paniers préconfigurés
+  const { data: allCarts = [], isLoading } = useQuery({
+    queryKey: ['all-preconfigured-carts'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('preconfigured_carts')
+        .select('*')
+        .eq('is_active', true)
+        .order('name');
 
-  const filteredCarts = selectedCategory === 'Tous' 
-    ? preconfiguredCarts 
-    : preconfiguredCarts.filter(cart => cart.category === selectedCategory);
+      if (error) throw error;
+      return data || [];
+    },
+  });
 
-  const handleAddCartToCustomCart = async (cart: PreconfiguredCart) => {
+  const categories = ['Tous', ...Array.from(new Set(allCarts.map(cart => cart.category).filter(Boolean)))];
+  const types = ['Tous', 'Par Occasion', 'Autres'];
+
+  const filteredCarts = allCarts.filter(cart => {
+    const matchesCategory = selectedCategory === 'Tous' || cart.category === selectedCategory;
+    const matchesType = selectedType === 'Tous' || 
+      (selectedType === 'Par Occasion' && cart.is_occasion) ||
+      (selectedType === 'Autres' && !cart.is_occasion);
+    
+    return matchesCategory && matchesType;
+  });
+
+  const handleAddCartToPersonal = async (cartId: string, cartName: string) => {
     if (!currentUser) {
       toast({
         title: "Connexion requise",
@@ -115,18 +57,7 @@ const PreconfiguredCarts = () => {
       return;
     }
 
-    try {
-      toast({
-        title: "Panier ajouté",
-        description: `Le panier "${cart.name}" a été ajouté à votre panier personnalisé`
-      });
-    } catch (error) {
-      toast({
-        title: "Erreur",
-        description: "Impossible d'ajouter le panier",
-        variant: "destructive"
-      });
-    }
+    addPreconfiguredCartToPersonal(cartId);
   };
 
   const scrollLeft = () => {
@@ -140,6 +71,14 @@ const PreconfiguredCarts = () => {
       scrollRef.current.scrollBy({ left: 400, behavior: 'smooth' });
     }
   };
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-500"></div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -155,20 +94,42 @@ const PreconfiguredCarts = () => {
           </p>
         </div>
 
-        {/* Filtres par catégorie */}
-        <div className="flex justify-center mb-8">
-          <div className="flex flex-wrap justify-center gap-2 bg-white p-2 rounded-lg shadow-sm">
-            {categories.map((category) => (
-              <Button
-                key={category}
-                variant={selectedCategory === category ? "default" : "ghost"}
-                onClick={() => setSelectedCategory(category)}
-                className={`transition-all ${selectedCategory === category ? "bg-orange-500 hover:bg-orange-600 text-white" : "hover:bg-orange-50"}`}
-                size="sm"
-              >
-                {category}
-              </Button>
-            ))}
+        {/* Filtres */}
+        <div className="space-y-4 mb-8">
+          {/* Filtres par type */}
+          <div className="flex justify-center">
+            <div className="flex flex-wrap justify-center gap-2 bg-white p-2 rounded-lg shadow-sm">
+              {types.map((type) => (
+                <Button
+                  key={type}
+                  variant={selectedType === type ? "default" : "ghost"}
+                  onClick={() => setSelectedType(type)}
+                  className={`transition-all ${selectedType === type ? "bg-orange-500 hover:bg-orange-600 text-white" : "hover:bg-orange-50"}`}
+                  size="sm"
+                >
+                  {type === 'Par Occasion' && <Star className="h-4 w-4 mr-1" />}
+                  {type === 'Autres' && <Heart className="h-4 w-4 mr-1" />}
+                  {type}
+                </Button>
+              ))}
+            </div>
+          </div>
+
+          {/* Filtres par catégorie */}
+          <div className="flex justify-center">
+            <div className="flex flex-wrap justify-center gap-2 bg-white p-2 rounded-lg shadow-sm">
+              {categories.map((category) => (
+                <Button
+                  key={category}
+                  variant={selectedCategory === category ? "default" : "ghost"}
+                  onClick={() => setSelectedCategory(category)}
+                  className={`transition-all ${selectedCategory === category ? "bg-blue-500 hover:bg-blue-600 text-white" : "hover:bg-blue-50"}`}
+                  size="sm"
+                >
+                  {category}
+                </Button>
+              ))}
+            </div>
           </div>
         </div>
 
@@ -176,7 +137,8 @@ const PreconfiguredCarts = () => {
         <div className="relative mb-8">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-2xl font-bold text-gray-900">
-              {selectedCategory === 'Tous' ? 'Tous nos paniers' : `Paniers ${selectedCategory}`}
+              {selectedCategory === 'Tous' && selectedType === 'Tous' ? 'Tous nos paniers' : 
+               `Paniers ${selectedType !== 'Tous' ? selectedType : ''} ${selectedCategory !== 'Tous' ? `- ${selectedCategory}` : ''}`.trim()}
             </h2>
             <div className="flex gap-2">
               <Button
@@ -213,14 +175,22 @@ const PreconfiguredCarts = () => {
               >
                 <div className="relative overflow-hidden">
                   <img 
-                    src={cart.image} 
+                    src={cart.image || 'https://images.unsplash.com/photo-1542838132-92c53300491e?w=500'} 
                     alt={cart.name}
                     className="w-full h-48 object-cover group-hover:scale-110 transition-transform duration-300"
                   />
-                  <div className="absolute top-3 left-3">
-                    <Badge className="bg-orange-500 text-white">
-                      {cart.items.length} produits
-                    </Badge>
+                  <div className="absolute top-3 left-3 flex gap-2">
+                    {cart.is_occasion ? (
+                      <Badge className="bg-orange-500 text-white">
+                        <Star className="h-3 w-3 mr-1" />
+                        Occasion
+                      </Badge>
+                    ) : (
+                      <Badge className="bg-green-500 text-white">
+                        <Heart className="h-3 w-3 mr-1" />
+                        Quotidien
+                      </Badge>
+                    )}
                   </div>
                   <div className="absolute top-3 right-3">
                     <Badge variant="outline" className="bg-white/90">
@@ -239,32 +209,21 @@ const PreconfiguredCarts = () => {
                       {cart.description}
                     </p>
                   </div>
-                  
-                  <div className="flex items-center justify-between mb-4 text-sm text-gray-500">
-                    <div className="flex items-center">
-                      <Users className="h-4 w-4 mr-1" />
-                      <span>{cart.estimatedServings} portions</span>
-                    </div>
-                    <div className="flex items-center">
-                      <Package className="h-4 w-4 mr-1" />
-                      <span>{cart.items.length} articles</span>
-                    </div>
-                  </div>
 
                   <div className="mb-4">
-                    <div className="text-2xl font-bold text-orange-500 text-center">
-                      {formatPrice(cart.totalPrice)}
+                    <div className={`text-2xl font-bold text-center ${cart.is_occasion ? 'text-orange-500' : 'text-green-500'}`}>
+                      {formatPrice(cart.total_price || 0)}
                     </div>
                   </div>
                   
                   <div className="space-y-2">
                     <Button 
-                      onClick={() => handleAddCartToCustomCart(cart)}
-                      disabled={!currentUser}
-                      className="w-full bg-orange-500 hover:bg-orange-600 text-white"
+                      onClick={() => handleAddCartToPersonal(cart.id, cart.name)}
+                      disabled={!currentUser || isAdding}
+                      className={`w-full text-white ${cart.is_occasion ? 'bg-orange-500 hover:bg-orange-600' : 'bg-green-500 hover:bg-green-600'}`}
                     >
                       <ShoppingCart className="h-4 w-4 mr-2" />
-                      Ajouter au panier
+                      {isAdding ? 'Ajout...' : 'Ajouter au panier'}
                     </Button>
                     
                     <Link to={`/paniers-preconfigures/${cart.id}`}>
@@ -287,7 +246,7 @@ const PreconfiguredCarts = () => {
               Aucun panier trouvé
             </h3>
             <p className="text-gray-500">
-              Aucun panier ne correspond à cette catégorie pour le moment.
+              Aucun panier ne correspond à ces critères pour le moment.
             </p>
           </div>
         )}
