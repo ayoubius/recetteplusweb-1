@@ -5,7 +5,8 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { ShoppingCart, Package, Heart, Star } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import { useOccasionCarts, useVeganCart } from '@/hooks/useOccasionCarts';
+import { useOccasionCarts } from '@/hooks/useOccasionCarts';
+import { useFeaturedVeganCart } from '@/hooks/useFeaturedCarts';
 import { usePreconfiguredCarts } from '@/hooks/useSupabaseCart';
 import { formatCFA } from '@/lib/currency';
 import { useAuth } from '@/contexts/SupabaseAuthContext';
@@ -15,7 +16,7 @@ const FeaturedCartsSection = () => {
   const { currentUser } = useAuth();
   const { toast } = useToast();
   const { data: occasionCarts = [] } = useOccasionCarts();
-  const { data: veganCart } = useVeganCart();
+  const { data: veganCart } = useFeaturedVeganCart();
   const { addPreconfiguredCartToPersonal, isAdding } = usePreconfiguredCarts();
 
   const handleAddToCart = (cartId: string, cartName: string) => {
