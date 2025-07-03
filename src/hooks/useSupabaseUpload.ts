@@ -34,6 +34,8 @@ export const useSupabaseUpload = () => {
         });
       }, 200);
 
+      console.log('Uploading file:', fileName, 'to bucket:', bucket);
+
       const { data, error } = await supabase.storage
         .from(bucket)
         .upload(fileName, file, {
@@ -45,13 +47,18 @@ export const useSupabaseUpload = () => {
       setUploadProgress(100);
 
       if (error) {
+        console.error('Upload error details:', error);
         throw error;
       }
+
+      console.log('Upload successful:', data);
 
       // Obtenir l'URL publique
       const { data: { publicUrl } } = supabase.storage
         .from(bucket)
         .getPublicUrl(data.path);
+
+      console.log('Public URL:', publicUrl);
 
       toast({
         title: "Upload réussi",
@@ -63,7 +70,7 @@ export const useSupabaseUpload = () => {
       console.error('Erreur upload:', error);
       toast({
         title: "Erreur d'upload",
-        description: "Impossible d'uploader le fichier",
+        description: error instanceof Error ? error.message : "Impossible d'uploader le fichier",
         variant: "destructive",
       });
       return null;
