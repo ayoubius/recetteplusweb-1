@@ -71,9 +71,9 @@ const sendEmail = async (emailData: EmailData) => {
 const getValidationEmailHTML = (userName: string, orderNumber: string, items: any[], total: number) => {
   const itemsHTML = items.map(item => `
     <tr>
-      <td style="padding: 10px; border-bottom: 1px solid #eee;">${item.name}</td>
-      <td style="padding: 10px; border-bottom: 1px solid #eee; text-align: center;">${item.quantity}</td>
-      <td style="padding: 10px; border-bottom: 1px solid #eee; text-align: right;">${item.price} FCFA</td>
+      <td style="padding: 10px; border-bottom: 1px solid #eee;">${item.name || 'Produit'}</td>
+      <td style="padding: 10px; border-bottom: 1px solid #eee; text-align: center;">${item.quantity || 1}</td>
+      <td style="padding: 10px; border-bottom: 1px solid #eee; text-align: right;">${(item.price || 0)} FCFA</td>
     </tr>
   `).join('');
 
@@ -142,9 +142,9 @@ const getValidationEmailHTML = (userName: string, orderNumber: string, items: an
 const getDeliveryEmailHTML = (userName: string, orderNumber: string, items: any[], total: number) => {
   const itemsHTML = items.map(item => `
     <tr>
-      <td style="padding: 10px; border-bottom: 1px solid #eee;">${item.name}</td>
-      <td style="padding: 10px; border-bottom: 1px solid #eee; text-align: center;">${item.quantity}</td>
-      <td style="padding: 10px; border-bottom: 1px solid #eee; text-align: right;">${item.price} FCFA</td>
+      <td style="padding: 10px; border-bottom: 1px solid #eee;">${item.name || 'Produit'}</td>
+      <td style="padding: 10px; border-bottom: 1px solid #eee; text-align: center;">${item.quantity || 1}</td>
+      <td style="padding: 10px; border-bottom: 1px solid #eee; text-align: right;">${(item.price || 0)} FCFA</td>
     </tr>
   `).join('');
 
@@ -255,11 +255,31 @@ serve(async (req) => {
       throw new Error('Email utilisateur non trouvé dans le profil');
     }
 
+    // Traiter les items de la commande pour extraire les bonnes données
+    let processedItems = [];
+    
+    if (Array.isArray(order.items)) {
+      processedItems = order.items.map(item => ({
+        name: item.name || item.product_name || 'Produit',
+        quantity: item.quantity || 1,
+        price: item.price || item.unit_price || 0
+      }));
+    } else {
+      console.log('Items format inattendu:', order.items);
+      processedItems = [{
+        name: 'Produit',
+        quantity: 1,
+        price: order.total_amount || 0
+      }];
+    }
+
+    console.log('Items traités:', processedItems);
+
     const emailData: EmailData = {
       orderId: order.id,
       userEmail: profile.email,
       userName: profile.display_name || 'Client',
-      orderItems: order.items || [],
+      orderItems: processedItems,
       totalAmount: order.total_amount,
       emailType: emailType,
       orderNumber: order.id.slice(0, 8).toUpperCase()
