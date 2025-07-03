@@ -20,7 +20,7 @@ export const useFeaturedCarts = () => {
   });
 };
 
-// Hook séparé pour les paniers par occasion
+// Hook for occasion carts only
 export const useFeaturedOccasionCarts = () => {
   return useQuery({
     queryKey: ['featured-occasion-carts'],
@@ -40,7 +40,7 @@ export const useFeaturedOccasionCarts = () => {
   });
 };
 
-// Hook pour le panier vegan (non-occasion)
+// Hook for single vegan cart
 export const useFeaturedVeganCart = () => {
   return useQuery({
     queryKey: ['featured-vegan-cart'],
