@@ -66,7 +66,7 @@ const PreconfiguredCartManagement: React.FC = () => {
 
   if (showForm) {
     return (
-      <AdminLayout>
+      
         <PreconfiguredCartForm
           cart={selectedCart}
           onSubmit={selectedCart ? handleUpdate : handleCreate}
@@ -78,7 +78,7 @@ const PreconfiguredCartManagement: React.FC = () => {
   }
 
   return (
-    <AdminLayout>
+    
       <div className="space-y-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-4">
