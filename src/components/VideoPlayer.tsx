@@ -3,27 +3,130 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Play, ExternalLink, Maximize2, Volume2, VolumeX } from 'lucide-react';
+import { Play, ExternalLink, Maximize2, Volume2, VolumeX, Heart } from 'lucide-react';
+import { useSupabaseVideos } from '@/hooks/useSupabaseVideos';
+import { useSupabaseFavorites } from '@/hooks/useSupabaseFavorites';
+import { useAuth } from '@/contexts/SupabaseAuthContext';
+import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '@/hooks/use-toast';
 
 interface VideoPlayerProps {
   videoUrl?: string;
   thumbnail?: string;
   title: string;
   className?: string;
+  videoId?: string;
 }
 
 const VideoPlayer: React.FC<VideoPlayerProps> = ({ 
   videoUrl, 
   thumbnail, 
   title, 
-  className = "" 
+  className = "",
+  videoId
 }) => {
   const [isPlaying, setIsPlaying] = useState(false);
   const [isMuted, setIsMuted] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [aspectRatio, setAspectRatio] = useState<'16:9' | '9:16' | 'auto'>('16:9');
+  const [likes, setLikes] = useState(0);
+  const [hasLiked, setHasLiked] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
+  
+  const { currentUser } = useAuth();
+  const { toast } = useToast();
+
+  // Charger les likes au démarrage
+  useEffect(() => {
+    if (videoId) {
+      loadVideoData();
+    }
+  }, [videoId]);
+
+  const loadVideoData = async () => {
+    if (!videoId) return;
+    
+    const { data: video } = await supabase
+      .from('videos')
+      .select('likes')
+      .eq('id', videoId)
+      .single();
+      
+    if (video) {
+      setLikes(video.likes || 0);
+    }
+    
+    // Vérifier si l'utilisateur a déjà liké
+    if (currentUser) {
+      const { data: userLike } = await supabase
+        .from('favorites')
+        .select('id')
+        .eq('user_id', currentUser.id)
+        .eq('item_id', videoId)
+        .eq('type', 'video')
+        .single();
+        
+      setHasLiked(!!userLike);
+    }
+  };
+
+  const handleLike = async () => {
+    if (!currentUser || !videoId) {
+      toast({
+        title: "Connexion requise",
+        description: "Vous devez être connecté pour liker une vidéo",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      if (hasLiked) {
+        // Retirer le like
+        await supabase.rpc('decrement_video_likes', { video_id: videoId });
+        await supabase
+          .from('favorites')
+          .delete()
+          .eq('user_id', currentUser.id)
+          .eq('item_id', videoId)
+          .eq('type', 'video');
+        
+        setLikes(prev => Math.max(0, prev - 1));
+        setHasLiked(false);
+        
+        toast({
+          title: "Like retiré",
+          description: "Vous avez retiré votre like de cette vidéo",
+        });
+      } else {
+        // Ajouter le like
+        await supabase.rpc('increment_video_likes', { video_id: videoId });
+        await supabase
+          .from('favorites')
+          .insert({
+            user_id: currentUser.id,
+            item_id: videoId,
+            type: 'video'
+          });
+        
+        setLikes(prev => prev + 1);
+        setHasLiked(true);
+        
+        toast({
+          title: "Vidéo likée !",
+          description: "Merci pour votre soutien !",
+        });
+      }
+    } catch (error) {
+      console.error('Error handling like:', error);
+      toast({
+        title: "Erreur",
+        description: "Impossible de traiter votre like",
+        variant: "destructive",
+      });
+    }
+  };
 
   if (!videoUrl) {
     return (
@@ -204,18 +307,45 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
           </div>
         </div>
         
-        {/* Bouton pour ouvrir dans un nouvel onglet - uniquement si pas en plein écran */}
+        {/* Boutons d'action - uniquement si pas en plein écran */}
         {!isFullscreen && (
-          <div className="p-4">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => window.open(videoUrl, '_blank')}
-              className="w-full"
-            >
-              <ExternalLink className="h-4 w-4 mr-2" />
-              Ouvrir dans un nouvel onglet
-            </Button>
+          <div className="p-4 space-y-3">
+            {/* Bouton Like */}
+            {videoId && (
+              <div className="flex items-center justify-between">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleLike}
+                  className={`${hasLiked ? 'bg-red-50 border-red-200 text-red-600' : 'hover:bg-red-50'}`}
+                >
+                  <Heart className={`h-4 w-4 mr-2 ${hasLiked ? 'fill-current' : ''}`} />
+                  {likes} J'aime
+                </Button>
+                
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => window.open(videoUrl, '_blank')}
+                >
+                  <ExternalLink className="h-4 w-4 mr-2" />
+                  Ouvrir dans un nouvel onglet
+                </Button>
+              </div>
+            )}
+            
+            {/* Bouton pour ouvrir dans un nouvel onglet si pas de videoId */}
+            {!videoId && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => window.open(videoUrl, '_blank')}
+                className="w-full"
+              >
+                <ExternalLink className="h-4 w-4 mr-2" />
+                Ouvrir dans un nouvel onglet
+              </Button>
+            )}
           </div>
         )}
       </CardContent>

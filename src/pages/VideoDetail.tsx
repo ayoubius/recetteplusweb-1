@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -10,6 +10,7 @@ import { useVideoRecipe } from '@/hooks/useVideoRecipe';
 import VideoPlayer from '@/components/VideoPlayer';
 import RecipeProducts from '@/components/RecipeProducts';
 import { useSupabaseFavorites } from '@/hooks/useSupabaseFavorites';
+import { supabase } from '@/integrations/supabase/client';
 
 const VideoDetail = () => {
   const { id } = useParams<{ id: string }>();
@@ -19,6 +20,13 @@ const VideoDetail = () => {
   const video = videos.find(v => v.id === id);
   const { data: relatedRecipe } = useVideoRecipe(video?.id || '');
   const isVideoFavorite = video ? favorites.some(fav => fav.item_id === video.id && fav.type === 'video') : false;
+
+  // Incrémenter les vues quand la vidéo est chargée
+  useEffect(() => {
+    if (video?.id) {
+      supabase.rpc('increment_video_views', { video_id: video.id });
+    }
+  }, [video?.id]);
 
   if (isLoading) {
     return (
@@ -69,6 +77,7 @@ const VideoDetail = () => {
               videoUrl={video.video_url}
               thumbnail={video.thumbnail}
               title={video.title}
+              videoId={video.id}
               className="mb-6"
             />
 
