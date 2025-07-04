@@ -100,7 +100,7 @@ const VideoManagement = () => {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="p-8 space-y-8">
       <VideoHeader 
         onAddVideo={canManageVideos ? () => setShowForm(true) : undefined}
         videoCount={videos.length}

@@ -4,7 +4,7 @@ import { useAuth } from '@/contexts/SupabaseAuthContext';
 import { useCurrentUserPermissions } from '@/hooks/useAdminPermissions';
 import { Navigate, Link, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { Shield, Users, Book, Package, Video, BarChart3, ArrowLeft, Settings, Mail, ShoppingCart, Truck, Menu, X, UserCheck } from 'lucide-react';
+import { Shield, Users, Book, Package, Video, BarChart3, ArrowLeft, Settings, Mail, ShoppingCart, Truck, Menu, X } from 'lucide-react';
 import AccessDenied from '@/components/AccessDenied';
 import { useState } from 'react';
 import { cn } from '@/lib/utils';
@@ -127,13 +127,7 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
       icon: Mail, 
       label: 'Newsletter',
       show: permissions.can_manage_users || permissions.is_super_admin
-    },
-    { 
-      path: '/admin/permissions', 
-      icon: UserCheck, 
-      label: 'Permissions',
-      show: permissions.is_super_admin
-    },
+    }
   ].filter(item => item.show);
 
   const closeSidebar = () => setSidebarOpen(false);

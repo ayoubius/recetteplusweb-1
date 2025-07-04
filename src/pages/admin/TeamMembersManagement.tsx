@@ -4,36 +4,80 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Plus, Users, Edit, Trash2, Search } from 'lucide-react';
-
-interface TeamMember {
-  id: string;
-  name: string;
-  role: string;
-  description: string | null;
-  photo_url: string | null;
-  is_active: boolean;
-  display_order: number | null;
-}
+import { useAdminTeamMembers, useCreateTeamMember, useUpdateTeamMember, useDeleteTeamMember, TeamMember } from '@/hooks/useTeamMembers';
+import TeamMemberForm from '@/components/admin/TeamMemberForm';
 
 const TeamMembersManagement: React.FC = () => {
-  const [members, setMembers] = useState<TeamMember[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
+  const [showForm, setShowForm] = useState(false);
+  const [editingMember, setEditingMember] = useState<TeamMember | null>(null);
+
+  const { data: members = [], isLoading, refetch } = useAdminTeamMembers();
+  const createMutation = useCreateTeamMember();
+  const updateMutation = useUpdateTeamMember();
+  const deleteMutation = useDeleteTeamMember();
 
   const filteredMembers = members.filter(member =>
     member.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     member.role.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
+  const handleCreate = async (data: Omit<TeamMember, 'id' | 'created_at' | 'updated_at'>) => {
+    await createMutation.mutateAsync(data);
+    setShowForm(false);
+    refetch();
+  };
+
+  const handleUpdate = async (data: Omit<TeamMember, 'id' | 'created_at' | 'updated_at'>) => {
+    if (!editingMember) return;
+    
+    await updateMutation.mutateAsync({
+      id: editingMember.id,
+      ...data
+    });
+    setEditingMember(null);
+    refetch();
+  };
+
+  const handleDelete = async (id: string, name: string) => {
+    if (window.confirm(`Êtes-vous sûr de vouloir supprimer ${name} de l'équipe ?`)) {
+      await deleteMutation.mutateAsync(id);
+      refetch();
+    }
+  };
+
+  const openCreateForm = () => {
+    setEditingMember(null);
+    setShowForm(true);
+  };
+
+  const openEditForm = (member: TeamMember) => {
+    setEditingMember(member);
+    setShowForm(true);
+  };
+
+  const closeForm = () => {
+    setShowForm(false);
+    setEditingMember(null);
+  };
+
+  const isLoading = createMutation.isPending || updateMutation.isPending || deleteMutation.isPending;
+
   return (
-    <div className="space-y-4">
+    <div className="p-8 space-y-8">
       <div className="flex items-center justify-between">
         <div className="flex items-center space-x-4">
-          <Users className="h-6 w-6" />
-          <h1 className="text-2xl font-bold">Gestion de l'Équipe</h1>
+          <Users className="h-8 w-8 text-orange-500" />
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900">Gestion de l'Équipe</h1>
+            <p className="text-gray-600 mt-2">
+              Gérez tous les membres de l'équipe ({members.length} membres)
+            </p>
+          </div>
         </div>
-        <Button>
+        <Button onClick={openCreateForm} className="bg-orange-500 hover:bg-orange-600">
           <Plus className="h-4 w-4 mr-2" />
           Nouveau Membre
         </Button>
@@ -85,10 +129,18 @@ const TeamMembersManagement: React.FC = () => {
                             <p className="text-sm text-gray-600">{member.role}</p>
                           </div>
                           <div className="flex space-x-1 ml-2">
-                            <Button variant="ghost" size="sm">
+                            <Button 
+                              variant="ghost" 
+                              size="sm"
+                              onClick={() => openEditForm(member)}
+                            >
                               <Edit className="h-4 w-4" />
                             </Button>
-                            <Button variant="ghost" size="sm">
+                            <Button 
+                              variant="ghost" 
+                              size="sm"
+                              onClick={() => handleDelete(member.id, member.name)}
+                            >
                               <Trash2 className="h-4 w-4" />
                             </Button>
                           </div>
@@ -117,6 +169,23 @@ const TeamMembersManagement: React.FC = () => {
           )}
         </CardContent>
       </Card>
+
+      {/* Form Dialog */}
+      <Dialog open={showForm} onOpenChange={closeForm}>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>
+              {editingMember ? 'Modifier le membre' : 'Ajouter un membre'}
+            </DialogTitle>
+          </DialogHeader>
+          <TeamMemberForm
+            member={editingMember}
+            onSubmit={editingMember ? handleUpdate : handleCreate}
+            onCancel={closeForm}
+            isLoading={isLoading}
+          />
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

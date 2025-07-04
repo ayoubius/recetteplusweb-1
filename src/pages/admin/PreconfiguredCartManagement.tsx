@@ -8,6 +8,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { ShoppingCart, Plus, Edit, Trash2, Search, Eye } from 'lucide-react';
 import { usePreconfiguredCarts, useCreatePreconfiguredCart, useUpdatePreconfiguredCart, useDeletePreconfiguredCart, PreconfiguredCart } from '@/hooks/usePreconfiguredCarts';
 import PreconfiguredCartForm from '@/components/admin/PreconfiguredCartForm';
+import { formatPrice } from '@/lib/currency';
 
 const PreconfiguredCartManagement: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
@@ -65,23 +66,30 @@ const PreconfiguredCartManagement: React.FC = () => {
 
   if (showForm) {
     return (
-      <PreconfiguredCartForm
-        cart={selectedCart}
-        onSubmit={selectedCart ? handleUpdate : handleCreate}
-        onCancel={closeForm}
-        isLoading={createMutation.isPending || updateMutation.isPending}
-      />
+      <div className="p-8">
+        <PreconfiguredCartForm
+          cart={selectedCart}
+          onSubmit={selectedCart ? handleUpdate : handleCreate}
+          onCancel={closeForm}
+          isLoading={createMutation.isPending || updateMutation.isPending}
+        />
+      </div>
     );
   }
 
   return (
-    <div className="space-y-4">
+    <div className="p-8 space-y-8">
       <div className="flex items-center justify-between">
         <div className="flex items-center space-x-4">
-          <ShoppingCart className="h-6 w-6" />
-          <h1 className="text-2xl font-bold">Gestion des Paniers Préconfigurés</h1>
+          <ShoppingCart className="h-8 w-8 text-orange-500" />
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900">Gestion des Paniers Préconfigurés</h1>
+            <p className="text-gray-600 mt-2">
+              Gérez tous les paniers préconfigurés ({carts.length} paniers)
+            </p>
+          </div>
         </div>
-        <Button onClick={openCreateForm}>
+        <Button onClick={openCreateForm} className="bg-orange-500 hover:bg-orange-600">
           <Plus className="h-4 w-4 mr-2" />
           Nouveau Panier
         </Button>
@@ -167,7 +175,7 @@ const PreconfiguredCartManagement: React.FC = () => {
 
                       <div className="flex items-center justify-between pt-2">
                         <span className="font-semibold text-lg">
-                          {cart.total_price?.toFixed(2)}€
+                          {formatPrice(cart.total_price || 0)}
                         </span>
                         <span className="text-sm text-gray-500">
                           {cart.items?.length || 0} produits

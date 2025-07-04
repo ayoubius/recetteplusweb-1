@@ -64,7 +64,7 @@ const RecipeManagement = () => {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="p-8 space-y-8">
       {/* Header */}
       <div className="flex justify-between items-center">
         <div>
@@ -81,7 +81,7 @@ const RecipeManagement = () => {
 
       {/* Search */}
       <Card>
-        <CardContent className="p-4">
+        <CardContent className="p-6">
           <div className="relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
             <Input
