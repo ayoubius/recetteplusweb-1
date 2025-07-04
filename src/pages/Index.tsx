@@ -99,6 +99,35 @@ const Index = () => {
             )}
           </div>
 
+          {/* Mobile App Promotion */}
+          <div className="mb-12 bg-gradient-to-r from-orange-400 via-orange-500 to-amber-500 rounded-3xl p-8 text-white shadow-2xl">
+            <div className="flex flex-col md:flex-row items-center justify-between">
+              <div className="flex items-center space-x-6 mb-6 md:mb-0">
+                <div className="bg-white/20 rounded-2xl p-4 backdrop-blur-sm">
+                  <Smartphone className="h-12 w-12 text-white" />
+                </div>
+                <div className="text-left">
+                  <h3 className="text-2xl font-bold mb-2">Application Mobile Disponible !</h3>
+                  <p className="text-lg opacity-90">
+                    Emportez vos recettes partout avec vous ! Cuisinez même hors connexion.
+                  </p>
+                </div>
+              </div>
+              <div className="flex flex-col sm:flex-row gap-3">
+                <Link to="/download-app">
+                  <Button size="lg" className="bg-white text-orange-600 hover:bg-gray-50 hover:text-orange-700 px-6 py-3 font-semibold shadow-lg">
+                    <Download className="mr-2 h-5 w-5" />
+                    Télécharger l'app
+                  </Button>
+                </Link>
+                <div className="flex items-center bg-white/10 backdrop-blur-sm rounded-lg px-4 py-3">
+                  <Star className="mr-2 h-5 w-5 text-yellow-300 fill-current" />
+                  <span className="font-semibold">4.8/5 ⭐</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
           {/* Quick Stats */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-4xl mx-auto">
             {quickStats.map((stat, index) => {
