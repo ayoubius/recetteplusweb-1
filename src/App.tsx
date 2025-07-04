@@ -123,32 +123,161 @@ const App = () => (
             <Route path="/livraison" element={<Layout><DeliveryDashboard /></Layout>} />
             <Route path="/delivery" element={<Layout><DeliveryDashboard /></Layout>} />
             
-            {/* Routes Admin - Structure corrigée */}
-            <Route path="/admin" element={<ProtectedRoute><AdminLayout /></ProtectedRoute>}>
-              <Route index element={<AdminDashboard />} />
-              <Route path="dashboard" element={<AdminDashboard />} />
-              <Route path="produits" element={<ProductManagement />} />
-              <Route path="products" element={<ProductManagement />} />
-              <Route path="recettes" element={<RecipeManagement />} />
-              <Route path="recipes" element={<RecipeManagement />} />
-              <Route path="videos" element={<VideoManagement />} />
-              <Route path="categories" element={<CategoryManagement />} />
-              <Route path="commandes" element={<OrderManagement />} />
-              <Route path="orders" element={<OrderManagement />} />
-              <Route path="utilisateurs" element={<UserManagement />} />
-              <Route path="users" element={<UserManagement />} />
-              <Route path="livraisons" element={<DeliveryManagement />} />
-              <Route path="deliveries" element={<DeliveryManagement />} />
-              <Route path="zones-livraison" element={<DeliveryZonesManagement />} />
-              <Route path="delivery-zones" element={<DeliveryZonesManagement />} />
-              <Route path="paniers-predefinis" element={<PreconfiguredCartManagement />} />
-              <Route path="preconfigured-carts" element={<PreconfiguredCartManagement />} />
-              <Route path="paniers" element={<PreconfiguredCartManagement />} />
-              <Route path="permissions" element={<PermissionsManagement />} />
-              <Route path="equipe" element={<TeamMembersManagement />} />
-              <Route path="team" element={<TeamMembersManagement />} />
-              <Route path="newsletter" element={<NewsletterManagement />} />
-            </Route>
+            {/* Routes Admin - SANS Layout (AdminLayout seulement) */}
+            <Route path="/admin" element={
+              <ProtectedRoute>
+                <AdminLayout>
+                  <AdminDashboard />
+                </AdminLayout>
+              </ProtectedRoute>
+            } />
+            <Route path="/admin/dashboard" element={
+              <ProtectedRoute>
+                <AdminLayout>
+                  <AdminDashboard />
+                </AdminLayout>
+              </ProtectedRoute>
+            } />
+            <Route path="/admin/produits" element={
+              <ProtectedRoute>
+                <AdminLayout>
+                  <ProductManagement />
+                </AdminLayout>
+              </ProtectedRoute>
+            } />
+            <Route path="/admin/products" element={
+              <ProtectedRoute>
+                <AdminLayout>
+                  <ProductManagement />
+                </AdminLayout>
+              </ProtectedRoute>
+            } />
+            <Route path="/admin/recettes" element={
+              <ProtectedRoute>
+                <AdminLayout>
+                  <RecipeManagement />
+                </AdminLayout>
+              </ProtectedRoute>
+            } />
+            <Route path="/admin/recipes" element={
+              <ProtectedRoute>
+                <AdminLayout>
+                  <RecipeManagement />
+                </AdminLayout>
+              </ProtectedRoute>
+            } />
+            <Route path="/admin/videos" element={
+              <ProtectedRoute>
+                <AdminLayout>
+                  <VideoManagement />
+                </AdminLayout>
+              </ProtectedRoute>
+            } />
+            <Route path="/admin/categories" element={
+              <ProtectedRoute>
+                <AdminLayout>
+                  <CategoryManagement />
+                </AdminLayout>
+              </ProtectedRoute>
+            } />
+            <Route path="/admin/commandes" element={
+              <ProtectedRoute>
+                <AdminLayout>
+                  <OrderManagement />
+                </AdminLayout>
+              </ProtectedRoute>
+            } />
+            <Route path="/admin/orders" element={
+              <ProtectedRoute>
+                <AdminLayout>
+                  <OrderManagement />
+                </AdminLayout>
+              </ProtectedRoute>
+            } />
+            <Route path="/admin/utilisateurs" element={
+              <ProtectedRoute>
+                <AdminLayout>
+                  <UserManagement />
+                </AdminLayout>
+              </ProtectedRoute>
+            } />
+            <Route path="/admin/users" element={
+              <ProtectedRoute>
+                <AdminLayout>
+                  <UserManagement />
+                </AdminLayout>
+              </ProtectedRoute>
+            } />
+            <Route path="/admin/livraisons" element={
+              <ProtectedRoute>
+                <AdminLayout>
+                  <DeliveryManagement />
+                </AdminLayout>
+              </ProtectedRoute>
+            } />
+            <Route path="/admin/deliveries" element={
+              <ProtectedRoute>
+                <AdminLayout>
+                  <DeliveryManagement />
+                </AdminLayout>
+              </ProtectedRoute>
+            } />
+            <Route path="/admin/zones-livraison" element={
+              <ProtectedRoute>
+                <AdminLayout>
+                  <DeliveryZonesManagement />
+                </AdminLayout>
+              </ProtectedRoute>
+            } />
+            <Route path="/admin/delivery-zones" element={
+              <ProtectedRoute>
+                <AdminLayout>
+                  <DeliveryZonesManagement />
+                </AdminLayout>
+              </ProtectedRoute>
+            } />
+            <Route path="/admin/paniers-predefinis" element={
+              <ProtectedRoute>
+                <AdminLayout>
+                  <PreconfiguredCartManagement />
+                </AdminLayout>
+              </ProtectedRoute>
+            } />
+            <Route path="/admin/preconfigured-carts" element={
+              <ProtectedRoute>
+                <AdminLayout>
+                  <PreconfiguredCartManagement />
+                </AdminLayout>
+              </ProtectedRoute>
+            } />
+            <Route path="/admin/permissions" element={
+              <ProtectedRoute>
+                <AdminLayout>
+                  <PermissionsManagement />
+                </AdminLayout>
+              </ProtectedRoute>
+            } />
+            <Route path="/admin/equipe" element={
+              <ProtectedRoute>
+                <AdminLayout>
+                  <TeamMembersManagement />
+                </AdminLayout>
+              </ProtectedRoute>
+            } />
+            <Route path="/admin/team" element={
+              <ProtectedRoute>
+                <AdminLayout>
+                  <TeamMembersManagement />
+                </AdminLayout>
+              </ProtectedRoute>
+            } />
+            <Route path="/admin/newsletter" element={
+              <ProtectedRoute>
+                <AdminLayout>
+                  <NewsletterManagement />
+                </AdminLayout>
+              </ProtectedRoute>
+            } />
             
             {/* Route 404 - Avec Layout pour les pages publiques */}
             <Route path="*" element={<Layout><NotFound /></Layout>} />

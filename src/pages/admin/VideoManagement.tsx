@@ -100,61 +100,34 @@ const VideoManagement = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header mobile */}
-      <div className="lg:hidden bg-white shadow-sm border-b px-4 py-4 sticky top-0 z-10">
-        <div className="flex justify-between items-center">
-          <div>
-            <h1 className="text-xl font-bold text-gray-900 flex items-center">
-              <Video className="h-6 w-6 mr-2 text-orange-500" />
-              Vidéos
-            </h1>
-            <p className="text-sm text-gray-600 mt-1">
-              {videos.length} vidéos au total
-            </p>
+    <div className="space-y-6">
+      <VideoHeader 
+        onAddVideo={canManageVideos ? () => setShowForm(true) : undefined}
+        videoCount={videos.length}
+      />
+
+      {/* Search */}
+      <Card>
+        <CardContent className="p-6">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+            <Input
+              placeholder="Rechercher une vidéo..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-10"
+            />
           </div>
-          {canManageVideos && (
-            <Button onClick={() => setShowForm(true)} size="sm" className="bg-orange-500 hover:bg-orange-600">
-              <Plus className="h-4 w-4" />
-            </Button>
-          )}
-        </div>
-      </div>
+        </CardContent>
+      </Card>
 
-      {/* Desktop header */}
-      <div className="hidden lg:block p-6">
-        <VideoHeader 
-          onAddVideo={canManageVideos ? () => setShowForm(true) : undefined}
-          videoCount={videos.length}
-        />
-      </div>
-
-      <div className="p-4 lg:px-6 space-y-4 lg:space-y-6">
-        {/* Search */}
-        <Card className="shadow-sm">
-          <CardContent className="p-4">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-              <Input
-                placeholder="Rechercher une vidéo..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10 h-12"
-              />
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Videos Table */}
-        <div className="bg-white rounded-lg shadow-sm border overflow-hidden">
-          <VideoTable
-            videos={filteredVideos}
-            onEdit={canManageVideos ? setEditingVideo : undefined}
-            onDelete={canManageVideos ? handleDelete : undefined}
-            isLoading={isMutating}
-          />
-        </div>
-      </div>
+      {/* Videos Table */}
+      <VideoTable
+        videos={filteredVideos}
+        onEdit={canManageVideos ? setEditingVideo : undefined}
+        onDelete={canManageVideos ? handleDelete : undefined}
+        isLoading={isMutating}
+      />
 
       {/* Create Form Dialog */}
       {canManageVideos && (
