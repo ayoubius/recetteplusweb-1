@@ -14,7 +14,7 @@ const TeamMembersManagement: React.FC = () => {
   const [showForm, setShowForm] = useState(false);
   const [editingMember, setEditingMember] = useState<TeamMember | null>(null);
 
-  const { data: members = [], isLoading, refetch } = useAdminTeamMembers();
+  const { data: members = [], isLoading: membersLoading, refetch } = useAdminTeamMembers();
   const createMutation = useCreateTeamMember();
   const updateMutation = useUpdateTeamMember();
   const deleteMutation = useDeleteTeamMember();
@@ -63,7 +63,7 @@ const TeamMembersManagement: React.FC = () => {
     setEditingMember(null);
   };
 
-  const isLoading = createMutation.isPending || updateMutation.isPending || deleteMutation.isPending;
+  const isMutating = createMutation.isPending || updateMutation.isPending || deleteMutation.isPending;
 
   return (
     <div className="p-8 space-y-8">
@@ -99,7 +99,7 @@ const TeamMembersManagement: React.FC = () => {
           </div>
         </CardHeader>
         <CardContent>
-          {isLoading ? (
+          {membersLoading ? (
             <div className="text-center py-8">Chargement...</div>
           ) : filteredMembers.length === 0 ? (
             <div className="text-center py-8 text-gray-500">
@@ -182,7 +182,7 @@ const TeamMembersManagement: React.FC = () => {
             member={editingMember}
             onSubmit={editingMember ? handleUpdate : handleCreate}
             onCancel={closeForm}
-            isLoading={isLoading}
+            isLoading={isMutating}
           />
         </DialogContent>
       </Dialog>
