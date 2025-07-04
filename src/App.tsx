@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
@@ -33,6 +32,9 @@ import DeliveryManagement from '@/pages/admin/DeliveryManagement';
 import CategoryManagement from '@/pages/admin/CategoryManagement';
 import NewsletterManagement from '@/pages/admin/NewsletterManagement';
 import PreconfiguredCartManagement from '@/pages/admin/PreconfiguredCartManagement';
+import DeliveryZonesManagement from '@/pages/admin/DeliveryZonesManagement';
+import TeamMembersManagement from '@/pages/admin/TeamMembersManagement';
+import PermissionsManagement from '@/pages/admin/PermissionsManagement';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -84,9 +86,12 @@ function App() {
               <Route path="/admin/videos" element={<AdminLayout><VideoManagement /></AdminLayout>} />
               <Route path="/admin/orders" element={<AdminLayout><OrderManagement /></AdminLayout>} />
               <Route path="/admin/delivery" element={<AdminLayout><DeliveryManagement /></AdminLayout>} />
+              <Route path="/admin/delivery-zones" element={<AdminLayout><DeliveryZonesManagement /></AdminLayout>} />
               <Route path="/admin/categories" element={<AdminLayout><CategoryManagement /></AdminLayout>} />
               <Route path="/admin/newsletter" element={<AdminLayout><NewsletterManagement /></AdminLayout>} />
               <Route path="/admin/preconfigured-carts" element={<AdminLayout><PreconfiguredCartManagement /></AdminLayout>} />
+              <Route path="/admin/team-members" element={<AdminLayout><TeamMembersManagement /></AdminLayout>} />
+              <Route path="/admin/permissions" element={<AdminLayout><PermissionsManagement /></AdminLayout>} />
               
               <Route path="*" element={<Layout><NotFound /></Layout>} />
             </Routes>
