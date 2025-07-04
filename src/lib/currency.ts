@@ -13,4 +13,4 @@ export const formatPrice = (amount: number): string => {
   return formatCFA(amount);
 };
 
-export const DELIVERY_FEE = 2000; // Prix de livraison en FCFA
+export const DELIVERY_FEE = 1000; // Prix de livraison en FCFA
