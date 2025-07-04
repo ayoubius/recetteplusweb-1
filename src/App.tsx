@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
@@ -21,6 +22,7 @@ import VideoDetails from '@/pages/VideoDetail';
 import CartPage from '@/pages/Cart';
 import CheckoutPage from '@/pages/Cart';
 import OrderConfirmationPage from '@/pages/OrderHistory';
+import DownloadApp from '@/pages/DownloadApp';
 
 import AdminDashboard from '@/pages/admin/AdminDashboard';
 import UserManagement from '@/pages/admin/UserManagement';
@@ -55,6 +57,7 @@ function App() {
             <Routes>
               <Route path="/" element={<Layout><Home /></Layout>} />
               <Route path="/about" element={<Layout><About /></Layout>} />
+              <Route path="/download-app" element={<Layout><DownloadApp /></Layout>} />
               {/* Routes en français pour correspondre aux liens du Header */}
               <Route path="/produits" element={<Layout><Products /></Layout>} />
               <Route path="/produits/:id" element={<Layout><ProductDetails /></Layout>} />

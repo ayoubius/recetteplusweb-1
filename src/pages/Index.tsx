@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { useAuth } from '@/contexts/SupabaseAuthContext';
 import { useUserProfile } from '@/hooks/useUserProfile';
-import { ChefHat, Package, Video, Users, Star, Clock, ArrowRight, Heart, ShoppingCart, Shield } from 'lucide-react';
+import { ChefHat, Package, Video, Users, Star, Clock, ArrowRight, Heart, ShoppingCart, Shield, Smartphone, Download } from 'lucide-react';
 
 const Index = () => {
   const { currentUser } = useAuth();
@@ -97,6 +97,35 @@ const Index = () => {
                 )}
               </div>
             )}
+          </div>
+
+          {/* Mobile App Promotion */}
+          <div className="mb-12 bg-gradient-to-r from-blue-500 to-purple-600 rounded-3xl p-8 text-white">
+            <div className="flex flex-col md:flex-row items-center justify-between">
+              <div className="flex items-center space-x-6 mb-6 md:mb-0">
+                <div className="bg-white/20 rounded-2xl p-4">
+                  <Smartphone className="h-12 w-12 text-white" />
+                </div>
+                <div className="text-left">
+                  <h3 className="text-2xl font-bold mb-2">Notre App Mobile</h3>
+                  <p className="text-lg opacity-90">
+                    Emportez vos recettes partout avec vous ! Disponible sur iOS et Android.
+                  </p>
+                </div>
+              </div>
+              <div className="flex flex-col sm:flex-row gap-3">
+                <Link to="/download-app">
+                  <Button size="lg" variant="secondary" className="bg-white text-blue-600 hover:bg-gray-100 px-6 py-3">
+                    <Download className="mr-2 h-5 w-5" />
+                    Télécharger l'app
+                  </Button>
+                </Link>
+                <Button variant="outline" size="lg" className="border-white text-white hover:bg-white/10 px-6 py-3">
+                  <Star className="mr-2 h-5 w-5" />
+                  4.8/5 ⭐
+                </Button>
+              </div>
+            </div>
           </div>
 
           {/* Quick Stats */}
@@ -203,12 +232,12 @@ const Index = () => {
                 </Card>
               </Link>
 
-              <Link to="/videos">
+              <Link to="/download-app">
                 <Card className="hover:shadow-lg transition-all duration-300 cursor-pointer hover:-translate-y-1 border-blue-100">
                   <CardContent className="p-6 text-center">
-                    <Video className="h-12 w-12 mx-auto mb-4 text-blue-500" />
-                    <h3 className="font-semibold mb-2">Regarder des vidéos</h3>
-                    <p className="text-sm text-gray-600">Apprenez de nouvelles techniques</p>
+                    <Smartphone className="h-12 w-12 mx-auto mb-4 text-blue-500" />
+                    <h3 className="font-semibold mb-2">App Mobile</h3>
+                    <p className="text-sm text-gray-600">Téléchargez notre application</p>
                   </CardContent>
                 </Card>
               </Link>
@@ -227,12 +256,20 @@ const Index = () => {
             <p className="text-xl mb-8 opacity-90">
               Créez votre compte gratuit et commencez à partager vos créations culinaires dès maintenant.
             </p>
-            <Link to="/signup">
-              <Button size="lg" variant="secondary" className="px-8 py-4 text-lg">
-                S'inscrire gratuitement
-                <ArrowRight className="ml-2 h-5 w-5" />
-              </Button>
-            </Link>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <Link to="/signup">
+                <Button size="lg" variant="secondary" className="px-8 py-4 text-lg">
+                  S'inscrire gratuitement
+                  <ArrowRight className="ml-2 h-5 w-5" />
+                </Button>
+              </Link>
+              <Link to="/download-app">
+                <Button size="lg" variant="outline" className="border-white text-white hover:bg-white/10 px-8 py-4 text-lg">
+                  <Smartphone className="mr-2 h-5 w-5" />
+                  Télécharger l'app
+                </Button>
+              </Link>
+            </div>
           </div>
         </section>
       )}
