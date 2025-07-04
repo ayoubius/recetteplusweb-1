@@ -37,20 +37,12 @@ const sendEmail = async (emailData: EmailData) => {
     ? getValidationEmailHTML(userName, orderNumber, orderItems, totalAmount)
     : getDeliveryEmailHTML(userName, orderNumber, orderItems, totalAmount);
 
-  // Configuration de l'email
-  const emailConfig = {
-    from: smtpLogin,
-    to: userEmail,
-    subject: subject,
-    html: htmlContent
-  };
-
   // Envoi via l'API Brevo
   const response = await fetch('https://api.brevo.com/v3/smtp/email', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      'api-key': smtpPassword // Brevo utilise la clé API dans les headers
+      'api-key': smtpPassword
     },
     body: JSON.stringify({
       sender: { email: smtpLogin, name: 'Recette+' },
@@ -70,15 +62,11 @@ const sendEmail = async (emailData: EmailData) => {
 
 const getValidationEmailHTML = (userName: string, orderNumber: string, items: any[], total: number) => {
   const itemsHTML = items.map(item => {
-    const itemName = item.name || item.product_name || 'Produit';
-    const itemQuantity = item.quantity || 1;
-    const itemPrice = item.price || item.unit_price || 0;
-    
     return `
       <tr>
-        <td style="padding: 10px; border-bottom: 1px solid #eee;">${itemName}</td>
-        <td style="padding: 10px; border-bottom: 1px solid #eee; text-align: center;">${itemQuantity}</td>
-        <td style="padding: 10px; border-bottom: 1px solid #eee; text-align: right;">${itemPrice} FCFA</td>
+        <td style="padding: 12px; border-bottom: 1px solid #eee; font-weight: 500;">${item.name}</td>
+        <td style="padding: 12px; border-bottom: 1px solid #eee; text-align: center; color: #666;">${item.quantity}</td>
+        <td style="padding: 12px; border-bottom: 1px solid #eee; text-align: right; font-weight: 600; color: #10B981;">${item.price} FCFA</td>
       </tr>
     `;
   }).join('');
@@ -98,7 +86,7 @@ const getValidationEmailHTML = (userName: string, orderNumber: string, items: an
       <div style="background: #f9f9f9; padding: 30px; border-radius: 0 0 10px 10px;">
         <h2 style="color: #10B981; margin-bottom: 20px;">Bonjour ${userName} ! 🎉</h2>
         
-        <p style="margin-bottom: 20px;">
+        <p style="margin-bottom: 20px; font-size: 16px;">
           Excellente nouvelle ! Votre commande <strong>#${orderNumber}</strong> a été validée et est maintenant en cours de préparation.
         </p>
         
@@ -108,9 +96,9 @@ const getValidationEmailHTML = (userName: string, orderNumber: string, items: an
           <table style="width: 100%; border-collapse: collapse; margin: 15px 0;">
             <thead>
               <tr style="background: #f8f9fa;">
-                <th style="padding: 10px; text-align: left; border-bottom: 2px solid #ddd;">Produit</th>
-                <th style="padding: 10px; text-align: center; border-bottom: 2px solid #ddd;">Qté</th>
-                <th style="padding: 10px; text-align: right; border-bottom: 2px solid #ddd;">Prix</th>
+                <th style="padding: 15px 12px; text-align: left; border-bottom: 2px solid #ddd; font-weight: 600;">Produit</th>
+                <th style="padding: 15px 12px; text-align: center; border-bottom: 2px solid #ddd; font-weight: 600;">Qté</th>
+                <th style="padding: 15px 12px; text-align: right; border-bottom: 2px solid #ddd; font-weight: 600;">Prix</th>
               </tr>
             </thead>
             <tbody>
@@ -119,17 +107,17 @@ const getValidationEmailHTML = (userName: string, orderNumber: string, items: an
           </table>
           
           <div style="text-align: right; margin-top: 20px; padding-top: 15px; border-top: 2px solid #10B981;">
-            <strong style="font-size: 18px; color: #10B981;">Total: ${total} FCFA</strong>
+            <strong style="font-size: 20px; color: #10B981;">Total: ${total} FCFA</strong>
           </div>
         </div>
         
-        <div style="background: #fef3e2; padding: 15px; border-radius: 8px; border: 1px solid #f59e0b; margin: 20px 0;">
-          <h4 style="color: #f59e0b; margin-top: 0;">📦 Prochaines étapes</h4>
-          <ul style="margin: 10px 0; padding-left: 20px;">
-            <li>Préparation de votre commande</li>
-            <li>Attribution à un livreur</li>
-            <li>Livraison à votre adresse</li>
-            <li>Paiement à la livraison</li>
+        <div style="background: #fef3e2; padding: 20px; border-radius: 8px; border: 1px solid #f59e0b; margin: 20px 0;">
+          <h4 style="color: #f59e0b; margin-top: 0; font-size: 18px;">📦 Prochaines étapes</h4>
+          <ul style="margin: 15px 0; padding-left: 25px;">
+            <li style="margin-bottom: 8px;">Préparation de votre commande</li>
+            <li style="margin-bottom: 8px;">Attribution à un livreur</li>
+            <li style="margin-bottom: 8px;">Livraison à votre adresse</li>
+            <li style="margin-bottom: 8px;">Paiement à la livraison</li>
           </ul>
         </div>
         
@@ -147,15 +135,11 @@ const getValidationEmailHTML = (userName: string, orderNumber: string, items: an
 
 const getDeliveryEmailHTML = (userName: string, orderNumber: string, items: any[], total: number) => {
   const itemsHTML = items.map(item => {
-    const itemName = item.name || item.product_name || 'Produit';
-    const itemQuantity = item.quantity || 1;
-    const itemPrice = item.price || item.unit_price || 0;
-    
     return `
       <tr>
-        <td style="padding: 10px; border-bottom: 1px solid #eee;">${itemName}</td>
-        <td style="padding: 10px; border-bottom: 1px solid #eee; text-align: center;">${itemQuantity}</td>
-        <td style="padding: 10px; border-bottom: 1px solid #eee; text-align: right;">${itemPrice} FCFA</td>
+        <td style="padding: 12px; border-bottom: 1px solid #eee; font-weight: 500;">${item.name}</td>
+        <td style="padding: 12px; border-bottom: 1px solid #eee; text-align: center; color: #666;">${item.quantity}</td>
+        <td style="padding: 12px; border-bottom: 1px solid #eee; text-align: right; font-weight: 600; color: #059669;">${item.price} FCFA</td>
       </tr>
     `;
   }).join('');
@@ -175,7 +159,7 @@ const getDeliveryEmailHTML = (userName: string, orderNumber: string, items: any[
       <div style="background: #f9f9f9; padding: 30px; border-radius: 0 0 10px 10px;">
         <h2 style="color: #059669; margin-bottom: 20px;">Bonjour ${userName} ! 🎉</h2>
         
-        <p style="margin-bottom: 20px;">
+        <p style="margin-bottom: 20px; font-size: 16px;">
           Votre commande <strong>#${orderNumber}</strong> a été livrée avec succès ! 
           Nous espérons que vous êtes satisfait(e) de vos achats.
         </p>
@@ -186,9 +170,9 @@ const getDeliveryEmailHTML = (userName: string, orderNumber: string, items: any[
           <table style="width: 100%; border-collapse: collapse; margin: 15px 0;">
             <thead>
               <tr style="background: #f8f9fa;">
-                <th style="padding: 10px; text-align: left; border-bottom: 2px solid #ddd;">Produit</th>
-                <th style="padding: 10px; text-align: center; border-bottom: 2px solid #ddd;">Qté</th>
-                <th style="padding: 10px; text-align: right; border-bottom: 2px solid #ddd;">Prix</th>
+                <th style="padding: 15px 12px; text-align: left; border-bottom: 2px solid #ddd; font-weight: 600;">Produit</th>
+                <th style="padding: 15px 12px; text-align: center; border-bottom: 2px solid #ddd; font-weight: 600;">Qté</th>
+                <th style="padding: 15px 12px; text-align: right; border-bottom: 2px solid #ddd; font-weight: 600;">Prix</th>
               </tr>
             </thead>
             <tbody>
@@ -197,13 +181,13 @@ const getDeliveryEmailHTML = (userName: string, orderNumber: string, items: any[
           </table>
           
           <div style="text-align: right; margin-top: 20px; padding-top: 15px; border-top: 2px solid #059669;">
-            <strong style="font-size: 18px; color: #059669;">Total payé: ${total} FCFA</strong>
+            <strong style="font-size: 20px; color: #059669;">Total payé: ${total} FCFA</strong>
           </div>
         </div>
         
-        <div style="background: #e0f2fe; padding: 15px; border-radius: 8px; border: 1px solid #0288d1; margin: 20px 0;">
-          <h4 style="color: #0288d1; margin-top: 0;">👨‍🍳 Bon appétit !</h4>
-          <p style="margin: 10px 0;">
+        <div style="background: #e0f2fe; padding: 20px; border-radius: 8px; border: 1px solid #0288d1; margin: 20px 0;">
+          <h4 style="color: #0288d1; margin-top: 0; font-size: 18px;">👨‍🍳 Bon appétit !</h4>
+          <p style="margin: 15px 0; font-size: 16px;">
             Nous espérons que vous allez préparer de délicieux plats avec vos ingrédients frais. 
             N'hésitez pas à consulter nos recettes pour vous inspirer !
           </p>
@@ -223,7 +207,6 @@ const getDeliveryEmailHTML = (userName: string, orderNumber: string, items: any[
 };
 
 serve(async (req) => {
-  // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
@@ -235,7 +218,6 @@ serve(async (req) => {
       throw new Error('orderId et emailType sont requis');
     }
 
-    // Initialiser le client Supabase
     const supabaseAdmin = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
@@ -267,57 +249,37 @@ serve(async (req) => {
       throw new Error('Email utilisateur non trouvé dans le profil');
     }
 
-    // Enrichir les items avec les informations des produits
-    let enrichedItems = [];
+    // Traiter les items de la commande
+    let orderItems = [];
     
     if (Array.isArray(order.items)) {
-      console.log('Items originaux de la commande:', order.items);
+      console.log('Items de la commande:', order.items);
       
-      // Pour chaque item de la commande, récupérer les détails du produit
-      for (const item of order.items) {
-        let enrichedItem = {
-          name: item.name || item.product_name || 'Produit',
-          quantity: item.quantity || 1,
-          price: item.price || item.unit_price || 0
-        };
-
-        // Si on a un product_id, récupérer les détails du produit
-        if (item.product_id) {
-          try {
-            const { data: product, error: productError } = await supabaseAdmin
-              .from('products')
-              .select('name, price')
-              .eq('id', item.product_id)
-              .single();
-
-            if (product && !productError) {
-              enrichedItem.name = product.name;
-              enrichedItem.price = product.price;
-              console.log(`Produit enrichi: ${product.name} - ${product.price} FCFA`);
-            }
-          } catch (productError) {
-            console.log(`Impossible de récupérer le produit ${item.product_id}:`, productError);
-          }
-        }
-
-        enrichedItems.push(enrichedItem);
-      }
+      // Le format des items est déjà correct selon votre exemple
+      // [{"name": "Carotte", "price": 150, "quantity": 2, "product_id": "..."}]
+      orderItems = order.items.map(item => ({
+        name: item.name || 'Produit',
+        quantity: item.quantity || 1,
+        price: item.price || 0
+      }));
+      
     } else {
-      console.log('Items format inattendu:', order.items);
-      enrichedItems = [{
+      console.log('Format items inattendu:', order.items);
+      // Fallback si le format est différent
+      orderItems = [{
         name: 'Produit',
         quantity: 1,
         price: order.total_amount || 0
       }];
     }
 
-    console.log('Items enrichis pour email:', enrichedItems);
+    console.log('Items traités pour email:', orderItems);
 
     const emailData: EmailData = {
       orderId: order.id,
       userEmail: profile.email,
       userName: profile.display_name || 'Client',
-      orderItems: enrichedItems,
+      orderItems: orderItems,
       totalAmount: order.total_amount,
       emailType: emailType,
       orderNumber: order.id.slice(0, 8).toUpperCase()
