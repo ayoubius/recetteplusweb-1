@@ -48,9 +48,31 @@ const PreconfiguredCartForm: React.FC<PreconfiguredCartFormProps> = ({
     total_price: 0
   });
 
+  // Fonction pour normaliser les items en tableau
+  const normalizeItems = (items: any): Array<{ productId: string; quantity: number }> => {
+    if (!items) return [];
+    if (Array.isArray(items)) return items;
+    if (typeof items === 'object') {
+      // Si c'est un objet, essayer de le convertir en tableau
+      try {
+        return Object.values(items).filter(item => 
+          item && typeof item === 'object' && item.productId
+        );
+      } catch (error) {
+        console.warn('Erreur lors de la normalisation des items:', error);
+        return [];
+      }
+    }
+    return [];
+  };
+
   // Initialiser le formulaire avec les données du panier si fourni
   useEffect(() => {
     if (cart) {
+      console.log('Cart data received:', cart);
+      const normalizedItems = normalizeItems(cart.items);
+      console.log('Normalized items:', normalizedItems);
+      
       setFormData({
         name: cart.name || '',
         description: cart.description || '',
@@ -58,7 +80,7 @@ const PreconfiguredCartForm: React.FC<PreconfiguredCartFormProps> = ({
         category: cart.category || 'Général',
         is_active: cart.is_active ?? true,
         is_featured: cart.is_featured ?? false,
-        items: cart.items || [],
+        items: normalizedItems,
         total_price: cart.total_price || 0
       });
     }
@@ -161,6 +183,7 @@ const PreconfiguredCartForm: React.FC<PreconfiguredCartFormProps> = ({
       total_price: formData.total_price
     };
 
+    console.log('Submitting cart data:', cleanData);
     onSubmit(cleanData);
   };
 

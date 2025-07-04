@@ -19,6 +19,23 @@ export interface PreconfiguredCart {
   created_at: string;
 }
 
+// Fonction pour normaliser les items
+const normalizeCartItems = (items: any): Array<{ productId: string; quantity: number }> => {
+  if (!items) return [];
+  if (Array.isArray(items)) return items;
+  if (typeof items === 'object') {
+    try {
+      return Object.values(items).filter(item => 
+        item && typeof item === 'object' && item.productId
+      );
+    } catch (error) {
+      console.warn('Erreur lors de la normalisation des items:', error);
+      return [];
+    }
+  }
+  return [];
+};
+
 export const usePreconfiguredCarts = () => {
   return useQuery({
     queryKey: ['preconfigured-carts'],
@@ -29,7 +46,12 @@ export const usePreconfiguredCarts = () => {
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      return data as PreconfiguredCart[];
+      
+      // Normaliser les données pour s'assurer que items est toujours un tableau
+      return (data || []).map(cart => ({
+        ...cart,
+        items: normalizeCartItems(cart.items)
+      })) as PreconfiguredCart[];
     },
   });
 };
@@ -42,7 +64,10 @@ export const useCreatePreconfiguredCart = () => {
     mutationFn: async (cart: Omit<PreconfiguredCart, 'id' | 'created_at'>) => {
       const { data, error } = await supabase
         .from('preconfigured_carts')
-        .insert([cart])
+        .insert([{
+          ...cart,
+          items: cart.items || [] // S'assurer qu'items n'est jamais null
+        }])
         .select()
         .single();
 
@@ -51,6 +76,7 @@ export const useCreatePreconfiguredCart = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['preconfigured-carts'] });
+      queryClient.invalidateQueries({ queryKey: ['all-preconfigured-carts'] });
       toast({
         title: "Panier créé",
         description: "Le panier préconfiguré a été créé avec succès",
@@ -75,7 +101,10 @@ export const useUpdatePreconfiguredCart = () => {
     mutationFn: async ({ id, ...cart }: Partial<PreconfiguredCart> & { id: string }) => {
       const { data, error } = await supabase
         .from('preconfigured_carts')
-        .update(cart)
+        .update({
+          ...cart,
+          items: cart.items || [] // S'assurer qu'items n'est jamais null
+        })
         .eq('id', id)
         .select()
         .single();
@@ -85,6 +114,7 @@ export const useUpdatePreconfiguredCart = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['preconfigured-carts'] });
+      queryClient.invalidateQueries({ queryKey: ['all-preconfigured-carts'] });
       toast({
         title: "Panier modifié",
         description: "Le panier préconfiguré a été modifié avec succès",
@@ -116,6 +146,7 @@ export const useDeletePreconfiguredCart = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['preconfigured-carts'] });
+      queryClient.invalidateQueries({ queryKey: ['all-preconfigured-carts'] });
       toast({
         title: "Panier supprimé",
         description: "Le panier préconfiguré a été supprimé avec succès",
