@@ -1,4 +1,3 @@
-
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useToast } from '@/hooks/use-toast';
 import { useAdminSupabase } from '@/hooks/useAdminSupabase';
@@ -8,7 +7,8 @@ export interface SupabaseUser {
   email?: string;
   display_name?: string;
   photo_url?: string;
-  role: 'user' | 'admin';
+  phone_number?: string;
+  role: 'user' | 'admin' | 'manager' | 'marketing_manager' | 'content_creator' | 'admin_assistant' | 'order_validator' | 'delivery_person';
   created_at: string;
   updated_at: string;
   preferences?: {
@@ -42,7 +42,8 @@ export const useSupabaseUsers = () => {
           email: user.email || '',
           display_name: user.display_name || '',
           photo_url: user.photo_url,
-          role: user.role as 'user' | 'admin',
+          phone_number: user.phone_number,
+          role: user.role as SupabaseUser['role'] || 'user',
           created_at: user.created_at,
           updated_at: user.updated_at,
           preferences: user.preferences
@@ -77,6 +78,7 @@ export const useUpdateSupabaseUser = () => {
         .from('profiles')
         .update({
           display_name: data.display_name,
+          phone_number: data.phone_number,
           role: data.role,
           preferences: data.preferences,
           updated_at: new Date().toISOString()
