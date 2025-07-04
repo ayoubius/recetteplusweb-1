@@ -3,8 +3,8 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
-import { SupabaseAuthProvider } from "./contexts/SupabaseAuthContext";
+import { BrowserRouter, Routes, Route, Outlet } from "react-router-dom";
+import { AuthProvider } from "./contexts/SupabaseAuthContext";
 import Layout from "./components/Layout";
 import AdminLayout from "./components/AdminLayout";
 import ProtectedRoute from "./components/ProtectedRoute";
@@ -55,14 +55,14 @@ const queryClient = new QueryClient();
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
-    <SupabaseAuthProvider>
+    <AuthProvider>
       <TooltipProvider>
         <Toaster />
         <Sonner />
         <BrowserRouter>
           <Routes>
             {/* Main Routes */}
-            <Route path="/" element={<Layout />}>
+            <Route path="/" element={<Layout><Outlet /></Layout>}>
               <Route index element={<Index />} />
               <Route path="accueil" element={<Home />} />
               <Route path="produits" element={<Products />} />
@@ -98,7 +98,7 @@ const App = () => (
             <Route path="/verify-email" element={<VerifyEmail />} />
 
             {/* Admin Routes */}
-            <Route path="/admin" element={<AdminLayout />}>
+            <Route path="/admin" element={<AdminLayout><Outlet /></AdminLayout>}>
               <Route index element={<AdminDashboard />} />
               <Route path="produits" element={<ProductManagement />} />
               <Route path="categories" element={<CategoryManagement />} />
@@ -122,7 +122,7 @@ const App = () => (
           </Routes>
         </BrowserRouter>
       </TooltipProvider>
-    </SupabaseAuthProvider>
+    </AuthProvider>
   </QueryClientProvider>
 );
 
