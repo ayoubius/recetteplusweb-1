@@ -1,10 +1,11 @@
+
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
-import { Package, CreditCard, MapPin } from 'lucide-react';
+import { Package, CreditCard } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/SupabaseAuthContext';
@@ -136,16 +137,21 @@ const SimpleOrderForm: React.FC<SimpleOrderFormProps> = ({
     try {
       console.log('Création de la commande...');
       
+      // Préparer les items avec des informations complètes
+      const orderItems = cartItems.map(item => ({
+        product_id: item.product_id || item.id,
+        quantity: item.quantity,
+        price: item.products?.price || item.price || item.unit_price || 0,
+        name: item.products?.name || item.name || item.product_name || 'Produit'
+      }));
+
+      console.log('Items de commande préparés:', orderItems);
+      
       const { data: order, error } = await supabase
         .from('orders')
         .insert({
           user_id: currentUser?.id,
-          items: cartItems.map(item => ({
-            product_id: item.product_id || item.id,
-            quantity: item.quantity,
-            price: item.products?.price || item.price || item.unit_price,
-            name: item.products?.name || item.name || item.product_name
-          })),
+          items: orderItems,
           total_amount: total,
           delivery_fee: DELIVERY_FEE,
           delivery_latitude: location.latitude.toString(),

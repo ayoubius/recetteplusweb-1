@@ -1,3 +1,4 @@
+
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
@@ -68,13 +69,19 @@ const sendEmail = async (emailData: EmailData) => {
 };
 
 const getValidationEmailHTML = (userName: string, orderNumber: string, items: any[], total: number) => {
-  const itemsHTML = items.map(item => `
-    <tr>
-      <td style="padding: 10px; border-bottom: 1px solid #eee;">${item.name || 'Produit'}</td>
-      <td style="padding: 10px; border-bottom: 1px solid #eee; text-align: center;">${item.quantity || 1}</td>
-      <td style="padding: 10px; border-bottom: 1px solid #eee; text-align: right;">${(item.price || 0)} FCFA</td>
-    </tr>
-  `).join('');
+  const itemsHTML = items.map(item => {
+    const itemName = item.name || item.product_name || 'Produit';
+    const itemQuantity = item.quantity || 1;
+    const itemPrice = item.price || item.unit_price || 0;
+    
+    return `
+      <tr>
+        <td style="padding: 10px; border-bottom: 1px solid #eee;">${itemName}</td>
+        <td style="padding: 10px; border-bottom: 1px solid #eee; text-align: center;">${itemQuantity}</td>
+        <td style="padding: 10px; border-bottom: 1px solid #eee; text-align: right;">${itemPrice} FCFA</td>
+      </tr>
+    `;
+  }).join('');
 
   return `
     <!DOCTYPE html>
@@ -139,13 +146,19 @@ const getValidationEmailHTML = (userName: string, orderNumber: string, items: an
 };
 
 const getDeliveryEmailHTML = (userName: string, orderNumber: string, items: any[], total: number) => {
-  const itemsHTML = items.map(item => `
-    <tr>
-      <td style="padding: 10px; border-bottom: 1px solid #eee;">${item.name || 'Produit'}</td>
-      <td style="padding: 10px; border-bottom: 1px solid #eee; text-align: center;">${item.quantity || 1}</td>
-      <td style="padding: 10px; border-bottom: 1px solid #eee; text-align: right;">${(item.price || 0)} FCFA</td>
-    </tr>
-  `).join('');
+  const itemsHTML = items.map(item => {
+    const itemName = item.name || item.product_name || 'Produit';
+    const itemQuantity = item.quantity || 1;
+    const itemPrice = item.price || item.unit_price || 0;
+    
+    return `
+      <tr>
+        <td style="padding: 10px; border-bottom: 1px solid #eee;">${itemName}</td>
+        <td style="padding: 10px; border-bottom: 1px solid #eee; text-align: center;">${itemQuantity}</td>
+        <td style="padding: 10px; border-bottom: 1px solid #eee; text-align: right;">${itemPrice} FCFA</td>
+      </tr>
+    `;
+  }).join('');
 
   return `
     <!DOCTYPE html>
@@ -228,7 +241,7 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     );
 
-    // Récupérer les détails de la commande avec une requête séparée pour le profil
+    // Récupérer les détails de la commande
     const { data: order, error: orderError } = await supabaseAdmin
       .from('orders')
       .select('*')
@@ -239,7 +252,7 @@ serve(async (req) => {
       throw new Error(`Commande non trouvée: ${orderError?.message}`);
     }
 
-    // Récupérer le profil utilisateur séparément
+    // Récupérer le profil utilisateur
     const { data: profile, error: profileError } = await supabaseAdmin
       .from('profiles')
       .select('display_name, email')
@@ -254,31 +267,57 @@ serve(async (req) => {
       throw new Error('Email utilisateur non trouvé dans le profil');
     }
 
-    // Traiter les items de la commande pour extraire les bonnes données
-    let processedItems = [];
+    // Enrichir les items avec les informations des produits
+    let enrichedItems = [];
     
     if (Array.isArray(order.items)) {
-      processedItems = order.items.map(item => ({
-        name: item.name || item.product_name || 'Produit',
-        quantity: item.quantity || 1,
-        price: item.price || item.unit_price || 0
-      }));
+      console.log('Items originaux de la commande:', order.items);
+      
+      // Pour chaque item de la commande, récupérer les détails du produit
+      for (const item of order.items) {
+        let enrichedItem = {
+          name: item.name || item.product_name || 'Produit',
+          quantity: item.quantity || 1,
+          price: item.price || item.unit_price || 0
+        };
+
+        // Si on a un product_id, récupérer les détails du produit
+        if (item.product_id) {
+          try {
+            const { data: product, error: productError } = await supabaseAdmin
+              .from('products')
+              .select('name, price')
+              .eq('id', item.product_id)
+              .single();
+
+            if (product && !productError) {
+              enrichedItem.name = product.name;
+              enrichedItem.price = product.price;
+              console.log(`Produit enrichi: ${product.name} - ${product.price} FCFA`);
+            }
+          } catch (productError) {
+            console.log(`Impossible de récupérer le produit ${item.product_id}:`, productError);
+          }
+        }
+
+        enrichedItems.push(enrichedItem);
+      }
     } else {
       console.log('Items format inattendu:', order.items);
-      processedItems = [{
+      enrichedItems = [{
         name: 'Produit',
         quantity: 1,
         price: order.total_amount || 0
       }];
     }
 
-    console.log('Items traités:', processedItems);
+    console.log('Items enrichis pour email:', enrichedItems);
 
     const emailData: EmailData = {
       orderId: order.id,
       userEmail: profile.email,
       userName: profile.display_name || 'Client',
-      orderItems: processedItems,
+      orderItems: enrichedItems,
       totalAmount: order.total_amount,
       emailType: emailType,
       orderNumber: order.id.slice(0, 8).toUpperCase()
