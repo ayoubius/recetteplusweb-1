@@ -20,7 +20,7 @@ import { useAuth } from '@/contexts/SupabaseAuthContext';
 const AdminLayout = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const location = useLocation();
-  const { signOut } = useAuth();
+  const { logout } = useAuth();
 
   const navigation = [
     { name: 'Tableau de bord', href: '/admin', icon: LayoutDashboard },
@@ -43,7 +43,7 @@ const AdminLayout = () => {
 
   const handleSignOut = async () => {
     try {
-      await signOut();
+      await logout();
     } catch (error) {
       console.error('Erreur lors de la déconnexion:', error);
     }
