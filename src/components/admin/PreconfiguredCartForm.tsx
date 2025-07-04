@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -7,11 +7,12 @@ import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { ShoppingCart, Plus, Trash2 } from 'lucide-react';
+import { ShoppingCart, Plus, Trash2, Package, Calculator } from 'lucide-react';
 import { PreconfiguredCart } from '@/hooks/usePreconfiguredCarts';
 import { useSupabaseProducts } from '@/hooks/useSupabaseProducts';
 import FileUploadField from './FileUploadField';
 import { useSupabaseUpload } from '@/hooks/useSupabaseUpload';
+import { useToast } from '@/hooks/use-toast';
 
 interface PreconfiguredCartFormProps {
   cart?: PreconfiguredCart;
@@ -31,31 +32,48 @@ const PreconfiguredCartForm: React.FC<PreconfiguredCartFormProps> = ({
   onCancel,
   isLoading
 }) => {
-  const { data: products = [] } = useSupabaseProducts();
+  const { data: products = [], isLoading: productsLoading } = useSupabaseProducts();
   const { uploadFile, uploading, uploadProgress } = useSupabaseUpload();
+  const { toast } = useToast();
   const [selectedImageFile, setSelectedImageFile] = useState<File | null>(null);
 
   const [formData, setFormData] = useState({
-    name: cart?.name || '',
-    description: cart?.description || '',
-    image: cart?.image || '',
-    category: cart?.category || 'Général',
-    is_active: cart?.is_active ?? true,
-    is_featured: cart?.is_featured ?? false,
-    items: cart?.items || [],
-    total_price: cart?.total_price || 0
+    name: '',
+    description: '',
+    image: '',
+    category: 'Général',
+    is_active: true,
+    is_featured: false,
+    items: [] as Array<{ productId: string; quantity: number }>,
+    total_price: 0
   });
 
+  // Initialiser le formulaire avec les données du panier si fourni
+  useEffect(() => {
+    if (cart) {
+      setFormData({
+        name: cart.name || '',
+        description: cart.description || '',
+        image: cart.image || '',
+        category: cart.category || 'Général',
+        is_active: cart.is_active ?? true,
+        is_featured: cart.is_featured ?? false,
+        items: cart.items || [],
+        total_price: cart.total_price || 0
+      });
+    }
+  }, [cart]);
+
   const addItem = () => {
-    setFormData({
-      ...formData,
-      items: [...formData.items, { productId: '', quantity: 1 }]
-    });
+    setFormData(prev => ({
+      ...prev,
+      items: [...prev.items, { productId: '', quantity: 1 }]
+    }));
   };
 
   const removeItem = (index: number) => {
     const newItems = formData.items.filter((_, i) => i !== index);
-    setFormData({ ...formData, items: newItems });
+    setFormData(prev => ({ ...prev, items: newItems }));
     calculateTotalPrice(newItems);
   };
 
@@ -63,11 +81,11 @@ const PreconfiguredCartForm: React.FC<PreconfiguredCartFormProps> = ({
     const newItems = formData.items.map((item, i) =>
       i === index ? { ...item, [field]: value } : item
     );
-    setFormData({ ...formData, items: newItems });
+    setFormData(prev => ({ ...prev, items: newItems }));
     calculateTotalPrice(newItems);
   };
 
-  const calculateTotalPrice = (items: any[]) => {
+  const calculateTotalPrice = (items: Array<{ productId: string; quantity: number }>) => {
     const total = items.reduce((sum, item) => {
       const product = products.find(p => p.id === item.productId);
       return sum + (product ? product.price * item.quantity : 0);
@@ -75,15 +93,60 @@ const PreconfiguredCartForm: React.FC<PreconfiguredCartFormProps> = ({
     setFormData(prev => ({ ...prev, total_price: total }));
   };
 
+  // Recalculer le prix total quand les items changent
+  useEffect(() => {
+    if (formData.items.length > 0) {
+      calculateTotalPrice(formData.items);
+    }
+  }, [formData.items, products]);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Validation
+    if (!formData.name.trim()) {
+      toast({
+        title: "Erreur",
+        description: "Le nom du panier est requis",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    if (formData.items.length === 0) {
+      toast({
+        title: "Erreur",
+        description: "Ajoutez au moins un produit au panier",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    const invalidItems = formData.items.filter(item => !item.productId || item.quantity <= 0);
+    if (invalidItems.length > 0) {
+      toast({
+        title: "Erreur",
+        description: "Tous les produits doivent avoir un nom et une quantité valide",
+        variant: "destructive"
+      });
+      return;
+    }
     
     let imageUrl = formData.image;
     
     if (selectedImageFile) {
-      const uploadedUrl = await uploadFile(selectedImageFile, 'paniers-preconfigures');
-      if (uploadedUrl) {
-        imageUrl = uploadedUrl;
+      try {
+        const uploadedUrl = await uploadFile(selectedImageFile, 'paniers-preconfigures');
+        if (uploadedUrl) {
+          imageUrl = uploadedUrl;
+        }
+      } catch (error) {
+        toast({
+          title: "Erreur",
+          description: "Impossible d'uploader l'image",
+          variant: "destructive"
+        });
+        return;
       }
     }
 
@@ -101,148 +164,229 @@ const PreconfiguredCartForm: React.FC<PreconfiguredCartFormProps> = ({
     onSubmit(cleanData);
   };
 
+  const getProductPrice = (productId: string) => {
+    const product = products.find(p => p.id === productId);
+    return product ? product.price : 0;
+  };
+
+  if (productsLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-500"></div>
+      </div>
+    );
+  }
+
   return (
-    <Card className="max-w-4xl mx-auto">
-      <CardHeader>
-        <CardTitle className="flex items-center">
-          <ShoppingCart className="h-5 w-5 mr-2" />
-          {cart ? 'Modifier le panier préconfiguré' : 'Créer un panier préconfiguré'}
-        </CardTitle>
-      </CardHeader>
-      <CardContent>
-        <form onSubmit={handleSubmit} className="space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+    <div className="max-w-4xl mx-auto p-6">
+      <Card className="shadow-lg">
+        <CardHeader className="bg-gradient-to-r from-orange-500 to-red-500 text-white">
+          <CardTitle className="flex items-center text-2xl">
+            <ShoppingCart className="h-6 w-6 mr-3" />
+            {cart ? 'Modifier le panier préconfiguré' : 'Créer un panier préconfiguré'}
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="p-6">
+          <form onSubmit={handleSubmit} className="space-y-6">
+            {/* Informations de base */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <Label htmlFor="name" className="text-sm font-medium">
+                  Nom du panier *
+                </Label>
+                <Input
+                  id="name"
+                  value={formData.name}
+                  onChange={(e) => setFormData(prev => ({...prev, name: e.target.value}))}
+                  placeholder="Ex: Panier petit-déjeuner"
+                  required
+                  className="mt-1"
+                />
+              </div>
+              <div>
+                <Label htmlFor="category" className="text-sm font-medium">
+                  Catégorie
+                </Label>
+                <Select 
+                  value={formData.category} 
+                  onValueChange={(value) => setFormData(prev => ({...prev, category: value}))}
+                >
+                  <SelectTrigger className="mt-1">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {categories.map((cat) => (
+                      <SelectItem key={cat} value={cat}>{cat}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
             <div>
-              <Label htmlFor="name">Nom du panier *</Label>
-              <Input
-                id="name"
-                value={formData.name}
-                onChange={(e) => setFormData({...formData, name: e.target.value})}
-                required
+              <Label htmlFor="description" className="text-sm font-medium">
+                Description
+              </Label>
+              <Textarea
+                id="description"
+                value={formData.description}
+                onChange={(e) => setFormData(prev => ({...prev, description: e.target.value}))}
+                placeholder="Décrivez le contenu et l'usage de ce panier..."
+                rows={3}
+                className="mt-1"
               />
             </div>
-            <div>
-              <Label htmlFor="category">Catégorie</Label>
-              <Select value={formData.category} onValueChange={(value) => setFormData({...formData, category: value})}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {categories.map((cat) => (
-                    <SelectItem key={cat} value={cat}>{cat}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
 
-          <div>
-            <Label htmlFor="description">Description</Label>
-            <Textarea
-              id="description"
-              value={formData.description}
-              onChange={(e) => setFormData({...formData, description: e.target.value})}
-              rows={3}
+            <FileUploadField
+              label="Image du panier"
+              value={formData.image}
+              onChange={(url) => setFormData(prev => ({...prev, image: url}))}
+              onFileSelect={setSelectedImageFile}
+              acceptedTypes="image/*"
+              uploading={uploading}
+              uploadProgress={uploadProgress}
+              placeholder="https://exemple.com/image.jpg"
             />
-          </div>
 
-          <FileUploadField
-            label="Image du panier"
-            value={formData.image}
-            onChange={(url) => setFormData({...formData, image: url})}
-            onFileSelect={setSelectedImageFile}
-            acceptedTypes="image/*"
-            uploading={uploading}
-            uploadProgress={uploadProgress}
-            placeholder="https://exemple.com/image.jpg"
-          />
-
-          <div className="space-y-4">
-            <div className="flex items-center justify-between">
-              <Label>Produits du panier</Label>
-              <Button type="button" onClick={addItem} size="sm">
-                <Plus className="h-4 w-4 mr-1" />
-                Ajouter un produit
-              </Button>
-            </div>
-
-            {formData.items.map((item, index) => (
-              <div key={index} className="flex gap-4 items-end p-4 border rounded-lg">
-                <div className="flex-1">
-                  <Label>Produit</Label>
-                  <Select 
-                    value={item.productId} 
-                    onValueChange={(value) => updateItem(index, 'productId', value)}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Sélectionner un produit" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {products.map((product) => (
-                        <SelectItem key={product.id} value={product.id}>
-                          {product.name} - {product.price}€/{product.unit}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="w-24">
-                  <Label>Quantité</Label>
-                  <Input
-                    type="number"
-                    min="1"
-                    value={item.quantity}
-                    onChange={(e) => updateItem(index, 'quantity', parseInt(e.target.value) || 1)}
-                  />
-                </div>
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={() => removeItem(index)}
-                >
-                  <Trash2 className="h-4 w-4" />
+            {/* Produits du panier */}
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <Label className="text-lg font-semibold flex items-center">
+                  <Package className="h-5 w-5 mr-2" />
+                  Produits du panier *
+                </Label>
+                <Button type="button" onClick={addItem} size="sm" variant="outline">
+                  <Plus className="h-4 w-4 mr-1" />
+                  Ajouter un produit
                 </Button>
               </div>
-            ))}
-          </div>
 
-          <div className="bg-gray-50 p-4 rounded-lg">
-            <div className="text-lg font-semibold">
-              Prix total: {formData.total_price.toFixed(2)}€
+              {formData.items.length === 0 ? (
+                <div className="text-center py-8 border-2 border-dashed border-gray-200 rounded-lg">
+                  <Package className="h-12 w-12 mx-auto text-gray-400 mb-2" />
+                  <p className="text-gray-500">Aucun produit ajouté</p>
+                  <Button type="button" onClick={addItem} size="sm" className="mt-2">
+                    Ajouter le premier produit
+                  </Button>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {formData.items.map((item, index) => (
+                    <Card key={index} className="p-4 border border-gray-200">
+                      <div className="flex gap-4 items-start">
+                        <div className="flex-1">
+                          <Label className="text-sm font-medium">Produit</Label>
+                          <Select 
+                            value={item.productId} 
+                            onValueChange={(value) => updateItem(index, 'productId', value)}
+                          >
+                            <SelectTrigger className="mt-1">
+                              <SelectValue placeholder="Sélectionner un produit" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {products.map((product) => (
+                                <SelectItem key={product.id} value={product.id}>
+                                  {product.name} - {product.price} FCFA/{product.unit}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        <div className="w-24">
+                          <Label className="text-sm font-medium">Quantité</Label>
+                          <Input
+                            type="number"
+                            min="1"
+                            value={item.quantity}
+                            onChange={(e) => updateItem(index, 'quantity', parseInt(e.target.value) || 1)}
+                            className="mt-1"
+                          />
+                        </div>
+                        <div className="w-24">
+                          <Label className="text-sm font-medium">Prix</Label>
+                          <div className="mt-1 p-2 bg-gray-50 rounded text-sm font-medium">
+                            {(getProductPrice(item.productId) * item.quantity).toLocaleString()} FCFA
+                          </div>
+                        </div>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={() => removeItem(index)}
+                          className="mt-6 text-red-600 hover:text-red-700 hover:bg-red-50"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </Card>
+                  ))}
+                </div>
+              )}
             </div>
-          </div>
 
-          <div className="flex items-center space-x-6">
-            <div className="flex items-center space-x-2">
-              <Switch
-                id="is_active"
-                checked={formData.is_active}
-                onCheckedChange={(checked) => setFormData({...formData, is_active: checked})}
-              />
-              <Label htmlFor="is_active">Panier actif</Label>
-            </div>
-            <div className="flex items-center space-x-2">
-              <Switch
-                id="is_featured"
-                checked={formData.is_featured}
-                onCheckedChange={(checked) => setFormData({...formData, is_featured: checked})}
-              />
-              <Label htmlFor="is_featured">Panier en vedette</Label>
-            </div>
-          </div>
+            {/* Prix total */}
+            <Card className="bg-gradient-to-r from-green-50 to-blue-50 border-green-200">
+              <CardContent className="p-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center">
+                    <Calculator className="h-5 w-5 mr-2 text-green-600" />
+                    <span className="text-lg font-semibold text-green-800">Prix total du panier</span>
+                  </div>
+                  <div className="text-2xl font-bold text-green-600">
+                    {formData.total_price.toLocaleString()} FCFA
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
 
-          <div className="flex justify-end space-x-4">
-            <Button type="button" variant="outline" onClick={onCancel} disabled={uploading}>
-              Annuler
-            </Button>
-            <Button type="submit" disabled={isLoading || uploading}>
-              {uploading ? 'Upload en cours...' : isLoading ? 'Enregistrement...' : (cart ? 'Modifier' : 'Créer')}
-            </Button>
-          </div>
-        </form>
-      </CardContent>
-    </Card>
+            {/* Options */}
+            <div className="flex items-center space-x-8 p-4 bg-gray-50 rounded-lg">
+              <div className="flex items-center space-x-2">
+                <Switch
+                  id="is_active"
+                  checked={formData.is_active}
+                  onCheckedChange={(checked) => setFormData(prev => ({...prev, is_active: checked}))}
+                />
+                <Label htmlFor="is_active" className="font-medium">
+                  Panier actif
+                </Label>
+              </div>
+              <div className="flex items-center space-x-2">
+                <Switch
+                  id="is_featured"
+                  checked={formData.is_featured}
+                  onCheckedChange={(checked) => setFormData(prev => ({...prev, is_featured: checked}))}
+                />
+                <Label htmlFor="is_featured" className="font-medium">
+                  Panier en vedette
+                </Label>
+              </div>
+            </div>
+
+            {/* Boutons d'action */}
+            <div className="flex justify-end space-x-4 pt-6 border-t">
+              <Button 
+                type="button" 
+                variant="outline" 
+                onClick={onCancel} 
+                disabled={uploading || isLoading}
+              >
+                Annuler
+              </Button>
+              <Button 
+                type="submit" 
+                disabled={isLoading || uploading || formData.items.length === 0}
+                className="bg-orange-500 hover:bg-orange-600"
+              >
+                {uploading ? 'Upload en cours...' : 
+                 isLoading ? 'Enregistrement...' : 
+                 cart ? 'Modifier le panier' : 'Créer le panier'}
+              </Button>
+            </div>
+          </form>
+        </CardContent>
+      </Card>
+    </div>
   );
 };
 
