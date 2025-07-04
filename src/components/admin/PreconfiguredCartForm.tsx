@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -48,16 +47,26 @@ const PreconfiguredCartForm: React.FC<PreconfiguredCartFormProps> = ({
     total_price: 0
   });
 
+  // Fonction pour vérifier si un objet a la structure d'un item de panier
+  const isValidCartItem = (item: any): item is { productId: string; quantity: number } => {
+    return item && 
+           typeof item === 'object' && 
+           typeof item.productId === 'string' && 
+           typeof item.quantity === 'number' &&
+           item.productId.length > 0 &&
+           item.quantity > 0;
+  };
+
   // Fonction pour normaliser les items en tableau
   const normalizeItems = (items: any): Array<{ productId: string; quantity: number }> => {
     if (!items) return [];
-    if (Array.isArray(items)) return items;
+    if (Array.isArray(items)) {
+      return items.filter(isValidCartItem);
+    }
     if (typeof items === 'object') {
-      // Si c'est un objet, essayer de le convertir en tableau
       try {
-        return Object.values(items).filter(item => 
-          item && typeof item === 'object' && item.productId
-        );
+        const values = Object.values(items);
+        return values.filter(isValidCartItem);
       } catch (error) {
         console.warn('Erreur lors de la normalisation des items:', error);
         return [];
