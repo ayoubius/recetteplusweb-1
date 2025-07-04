@@ -50,7 +50,7 @@ const FeaturedCartsSection = () => {
                 <img 
                   src={veganCart.image || 'https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=120'} 
                   alt={veganCart.name}
-                  className="w-20 h-20 rounded-lg object-cover"
+                  className="w-16 h-12 rounded-lg object-cover"
                 />
               </div>
               
