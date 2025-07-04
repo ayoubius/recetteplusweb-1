@@ -56,25 +56,57 @@ const App = () => (
         <Sonner />
         <BrowserRouter>
           <Routes>
-            {/* Routes with Layout (Header + Footer) */}
+            {/* Routes principales avec Layout (Header + Footer) */}
             <Route path="/" element={<Layout><Index /></Layout>} />
+            <Route path="/accueil" element={<Layout><Index /></Layout>} />
+            <Route path="/home" element={<Layout><Index /></Layout>} />
+            
+            {/* Pages d'information */}
             <Route path="/about" element={<Layout><About /></Layout>} />
+            <Route path="/a-propos" element={<Layout><About /></Layout>} />
+            
+            {/* Recettes */}
             <Route path="/recettes" element={<Layout><Recipes /></Layout>} />
             <Route path="/recettes/:id" element={<Layout><RecipeDetail /></Layout>} />
+            <Route path="/recipes" element={<Layout><Recipes /></Layout>} />
+            <Route path="/recipes/:id" element={<Layout><RecipeDetail /></Layout>} />
+            
+            {/* Produits */}
             <Route path="/produits" element={<Layout><Products /></Layout>} />
             <Route path="/produits/:id" element={<Layout><ProductDetail /></Layout>} />
+            <Route path="/products" element={<Layout><Products /></Layout>} />
+            <Route path="/products/:id" element={<Layout><ProductDetail /></Layout>} />
+            
+            {/* Vidéos */}
             <Route path="/videos" element={<Layout><Videos /></Layout>} />
             <Route path="/videos/:id" element={<Layout><VideoDetail /></Layout>} />
+            
+            {/* Paniers préconfigurés */}
             <Route path="/paniers" element={<Layout><PreconfiguredCarts /></Layout>} />
             <Route path="/paniers/:id" element={<Layout><PreconfiguredCartDetail /></Layout>} />
+            <Route path="/preconfigured-carts" element={<Layout><PreconfiguredCarts /></Layout>} />
+            <Route path="/preconfigured-carts/:id" element={<Layout><PreconfiguredCartDetail /></Layout>} />
+            
+            {/* Panier principal */}
             <Route path="/panier" element={<Layout><Cart /></Layout>} />
+            <Route path="/cart" element={<Layout><Cart /></Layout>} />
+            
+            {/* Favoris */}
             <Route path="/favoris" element={<Layout><Favorites /></Layout>} />
             <Route path="/favorites" element={<Layout><Favorites /></Layout>} />
+            
+            {/* Profil et compte */}
             <Route path="/profil" element={<Layout><Profile /></Layout>} />
+            <Route path="/profile" element={<Layout><Profile /></Layout>} />
             <Route path="/commandes" element={<Layout><OrderHistory /></Layout>} />
+            <Route path="/orders" element={<Layout><OrderHistory /></Layout>} />
+            <Route path="/order-history" element={<Layout><OrderHistory /></Layout>} />
+            
+            {/* Authentification */}
             <Route path="/connexion" element={<Layout><Login /></Layout>} />
             <Route path="/login" element={<Layout><Login /></Layout>} />
             <Route path="/inscription" element={<Layout><Signup /></Layout>} />
+            <Route path="/register" element={<Layout><Signup /></Layout>} />
             <Route path="/signup" element={<Layout><Signup /></Layout>} />
             <Route path="/mot-de-passe-oublie" element={<Layout><ForgotPassword /></Layout>} />
             <Route path="/forgot-password" element={<Layout><ForgotPassword /></Layout>} />
@@ -83,12 +115,23 @@ const App = () => (
             <Route path="/verification-email" element={<Layout><VerifyEmail /></Layout>} />
             <Route path="/verify-email" element={<Layout><VerifyEmail /></Layout>} />
             <Route path="/auth/phone" element={<Layout><PhoneAuth /></Layout>} />
+            
+            {/* Autres pages */}
             <Route path="/download" element={<Layout><DownloadApp /></Layout>} />
+            <Route path="/telecharger" element={<Layout><DownloadApp /></Layout>} />
             <Route path="/mobile" element={<Layout><MobileRedirect /></Layout>} />
             <Route path="/livraison" element={<Layout><DeliveryDashboard /></Layout>} />
+            <Route path="/delivery" element={<Layout><DeliveryDashboard /></Layout>} />
             
-            {/* Admin Routes - NO Layout (they have their own AdminLayout) */}
+            {/* Routes Admin - SANS Layout (AdminLayout seulement) */}
             <Route path="/admin" element={
+              <ProtectedRoute>
+                <AdminLayout>
+                  <AdminDashboard />
+                </AdminLayout>
+              </ProtectedRoute>
+            } />
+            <Route path="/admin/dashboard" element={
               <ProtectedRoute>
                 <AdminLayout>
                   <AdminDashboard />
@@ -102,7 +145,21 @@ const App = () => (
                 </AdminLayout>
               </ProtectedRoute>
             } />
+            <Route path="/admin/products" element={
+              <ProtectedRoute>
+                <AdminLayout>
+                  <ProductManagement />
+                </AdminLayout>
+              </ProtectedRoute>
+            } />
             <Route path="/admin/recettes" element={
+              <ProtectedRoute>
+                <AdminLayout>
+                  <RecipeManagement />
+                </AdminLayout>
+              </ProtectedRoute>
+            } />
+            <Route path="/admin/recipes" element={
               <ProtectedRoute>
                 <AdminLayout>
                   <RecipeManagement />
@@ -130,7 +187,21 @@ const App = () => (
                 </AdminLayout>
               </ProtectedRoute>
             } />
+            <Route path="/admin/orders" element={
+              <ProtectedRoute>
+                <AdminLayout>
+                  <OrderManagement />
+                </AdminLayout>
+              </ProtectedRoute>
+            } />
             <Route path="/admin/utilisateurs" element={
+              <ProtectedRoute>
+                <AdminLayout>
+                  <UserManagement />
+                </AdminLayout>
+              </ProtectedRoute>
+            } />
+            <Route path="/admin/users" element={
               <ProtectedRoute>
                 <AdminLayout>
                   <UserManagement />
@@ -144,7 +215,21 @@ const App = () => (
                 </AdminLayout>
               </ProtectedRoute>
             } />
+            <Route path="/admin/deliveries" element={
+              <ProtectedRoute>
+                <AdminLayout>
+                  <DeliveryManagement />
+                </AdminLayout>
+              </ProtectedRoute>
+            } />
             <Route path="/admin/zones-livraison" element={
+              <ProtectedRoute>
+                <AdminLayout>
+                  <DeliveryZonesManagement />
+                </AdminLayout>
+              </ProtectedRoute>
+            } />
+            <Route path="/admin/delivery-zones" element={
               <ProtectedRoute>
                 <AdminLayout>
                   <DeliveryZonesManagement />
@@ -179,6 +264,13 @@ const App = () => (
                 </AdminLayout>
               </ProtectedRoute>
             } />
+            <Route path="/admin/team" element={
+              <ProtectedRoute>
+                <AdminLayout>
+                  <TeamMembersManagement />
+                </AdminLayout>
+              </ProtectedRoute>
+            } />
             <Route path="/admin/newsletter" element={
               <ProtectedRoute>
                 <AdminLayout>
@@ -187,7 +279,7 @@ const App = () => (
               </ProtectedRoute>
             } />
             
-            {/* 404 Route - With Layout */}
+            {/* Route 404 - Avec Layout pour les pages publiques */}
             <Route path="*" element={<Layout><NotFound /></Layout>} />
           </Routes>
         </BrowserRouter>
