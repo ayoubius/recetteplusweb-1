@@ -5,6 +5,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/contexts/SupabaseAuthContext";
+import Layout from "./components/Layout";
 import Index from "./pages/Index";
 import About from "./pages/About";
 import Recipes from "./pages/Recipes";
@@ -55,37 +56,38 @@ const App = () => (
         <Sonner />
         <BrowserRouter>
           <Routes>
-            <Route path="/" element={<Index />} />
-            <Route path="/about" element={<About />} />
-            <Route path="/recettes" element={<Recipes />} />
-            <Route path="/recettes/:id" element={<RecipeDetail />} />
-            <Route path="/produits" element={<Products />} />
-            <Route path="/produits/:id" element={<ProductDetail />} />
-            <Route path="/videos" element={<Videos />} />
-            <Route path="/videos/:id" element={<VideoDetail />} />
-            <Route path="/paniers" element={<PreconfiguredCarts />} />
-            <Route path="/paniers/:id" element={<PreconfiguredCartDetail />} />
-            <Route path="/panier" element={<Cart />} />
-            <Route path="/favoris" element={<Favorites />} />
-            <Route path="/favorites" element={<Favorites />} />
-            <Route path="/profil" element={<Profile />} />
-            <Route path="/commandes" element={<OrderHistory />} />
-            <Route path="/connexion" element={<Login />} />
-            <Route path="/login" element={<Login />} />
-            <Route path="/inscription" element={<Signup />} />
-            <Route path="/signup" element={<Signup />} />
-            <Route path="/mot-de-passe-oublie" element={<ForgotPassword />} />
-            <Route path="/forgot-password" element={<ForgotPassword />} />
-            <Route path="/reinitialiser-mot-de-passe" element={<ResetPassword />} />
-            <Route path="/reset-password" element={<ResetPassword />} />
-            <Route path="/verification-email" element={<VerifyEmail />} />
-            <Route path="/verify-email" element={<VerifyEmail />} />
-            <Route path="/auth/phone" element={<PhoneAuth />} />
-            <Route path="/download" element={<DownloadApp />} />
-            <Route path="/mobile" element={<MobileRedirect />} />
-            <Route path="/livraison" element={<DeliveryDashboard />} />
+            {/* Routes with Layout (Header + Footer) */}
+            <Route path="/" element={<Layout><Index /></Layout>} />
+            <Route path="/about" element={<Layout><About /></Layout>} />
+            <Route path="/recettes" element={<Layout><Recipes /></Layout>} />
+            <Route path="/recettes/:id" element={<Layout><RecipeDetail /></Layout>} />
+            <Route path="/produits" element={<Layout><Products /></Layout>} />
+            <Route path="/produits/:id" element={<Layout><ProductDetail /></Layout>} />
+            <Route path="/videos" element={<Layout><Videos /></Layout>} />
+            <Route path="/videos/:id" element={<Layout><VideoDetail /></Layout>} />
+            <Route path="/paniers" element={<Layout><PreconfiguredCarts /></Layout>} />
+            <Route path="/paniers/:id" element={<Layout><PreconfiguredCartDetail /></Layout>} />
+            <Route path="/panier" element={<Layout><Cart /></Layout>} />
+            <Route path="/favoris" element={<Layout><Favorites /></Layout>} />
+            <Route path="/favorites" element={<Layout><Favorites /></Layout>} />
+            <Route path="/profil" element={<Layout><Profile /></Layout>} />
+            <Route path="/commandes" element={<Layout><OrderHistory /></Layout>} />
+            <Route path="/connexion" element={<Layout><Login /></Layout>} />
+            <Route path="/login" element={<Layout><Login /></Layout>} />
+            <Route path="/inscription" element={<Layout><Signup /></Layout>} />
+            <Route path="/signup" element={<Layout><Signup /></Layout>} />
+            <Route path="/mot-de-passe-oublie" element={<Layout><ForgotPassword /></Layout>} />
+            <Route path="/forgot-password" element={<Layout><ForgotPassword /></Layout>} />
+            <Route path="/reinitialiser-mot-de-passe" element={<Layout><ResetPassword /></Layout>} />
+            <Route path="/reset-password" element={<Layout><ResetPassword /></Layout>} />
+            <Route path="/verification-email" element={<Layout><VerifyEmail /></Layout>} />
+            <Route path="/verify-email" element={<Layout><VerifyEmail /></Layout>} />
+            <Route path="/auth/phone" element={<Layout><PhoneAuth /></Layout>} />
+            <Route path="/download" element={<Layout><DownloadApp /></Layout>} />
+            <Route path="/mobile" element={<Layout><MobileRedirect /></Layout>} />
+            <Route path="/livraison" element={<Layout><DeliveryDashboard /></Layout>} />
             
-            {/* Admin Routes */}
+            {/* Admin Routes - NO Layout (they have their own AdminLayout) */}
             <Route path="/admin" element={
               <ProtectedRoute>
                 <AdminLayout>
@@ -156,6 +158,13 @@ const App = () => (
                 </AdminLayout>
               </ProtectedRoute>
             } />
+            <Route path="/admin/preconfigured-carts" element={
+              <ProtectedRoute>
+                <AdminLayout>
+                  <PreconfiguredCartManagement />
+                </AdminLayout>
+              </ProtectedRoute>
+            } />
             <Route path="/admin/permissions" element={
               <ProtectedRoute>
                 <AdminLayout>
@@ -178,8 +187,8 @@ const App = () => (
               </ProtectedRoute>
             } />
             
-            {/* 404 Route */}
-            <Route path="*" element={<NotFound />} />
+            {/* 404 Route - With Layout */}
+            <Route path="*" element={<Layout><NotFound /></Layout>} />
           </Routes>
         </BrowserRouter>
       </TooltipProvider>

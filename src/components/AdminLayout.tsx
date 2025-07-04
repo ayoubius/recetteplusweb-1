@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { useAuth } from '@/contexts/SupabaseAuthContext';
 import { useCurrentUserPermissions } from '@/hooks/useAdminPermissions';
@@ -68,37 +69,37 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
       show: true
     },
     { 
-      path: '/admin/users', 
+      path: '/admin/utilisateurs', 
       icon: Users, 
       label: 'Utilisateurs',
       show: permissions.can_manage_users || permissions.is_super_admin
     },
     { 
-      path: '/admin/orders', 
+      path: '/admin/commandes', 
       icon: ShoppingCart, 
       label: 'Commandes',
       show: permissions.can_manage_orders || permissions.can_validate_orders || permissions.is_super_admin
     },
     { 
-      path: '/admin/delivery', 
+      path: '/admin/livraisons', 
       icon: Truck, 
       label: 'Livraisons',
       show: permissions.can_manage_deliveries || permissions.is_super_admin
     },
     { 
-      path: '/admin/delivery-zones', 
+      path: '/admin/zones-livraison', 
       icon: MapPin, 
       label: 'Zones de Livraison',
       show: permissions.can_manage_deliveries || permissions.is_super_admin
     },
     { 
-      path: '/admin/recipes', 
+      path: '/admin/recettes', 
       icon: Book, 
       label: 'Recettes',
       show: permissions.can_manage_recipes || permissions.is_super_admin
     },
     { 
-      path: '/admin/products', 
+      path: '/admin/produits', 
       icon: Package, 
       label: 'Produits',
       show: permissions.can_manage_products || permissions.is_super_admin
@@ -122,7 +123,7 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
       show: permissions.can_manage_categories || permissions.is_super_admin
     },
     { 
-      path: '/admin/team-members', 
+      path: '/admin/equipe', 
       icon: Users, 
       label: 'Équipe',
       show: permissions.can_manage_users || permissions.is_super_admin
@@ -285,70 +286,6 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
             </div>
           </div>
         </div>
-
-        {/* Mobile Sidebar avec les mêmes menuItems */}
-        {sidebarOpen && (
-          <div className="lg:hidden fixed inset-0 z-50 flex">
-            <div 
-              className="fixed inset-0 bg-black/50" 
-              onClick={() => setSidebarOpen(false)}
-            />
-            
-            <div className="relative flex flex-col w-80 max-w-[80vw] bg-white shadow-xl">
-              <div className="flex items-center justify-between p-4 border-b">
-                <div className="flex items-center">
-                  <Shield className="h-6 w-6 text-orange-500 mr-2" />
-                  <div>
-                    <h1 className="text-lg font-bold text-gray-900">Administration</h1>
-                    {permissions.is_super_admin && (
-                      <span className="text-xs text-orange-600 font-medium">Super Admin</span>
-                    )}
-                  </div>
-                </div>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => setSidebarOpen(false)}
-                >
-                  <X className="h-5 w-5" />
-                </Button>
-              </div>
-              
-              <nav className="flex-1 overflow-y-auto p-4 space-y-2">
-                {menuItems.map((item) => {
-                  const Icon = item.icon;
-                  const isActive = location.pathname === item.path;
-                  
-                  return (
-                    <Link
-                      key={item.path}
-                      to={item.path}
-                      onClick={() => setSidebarOpen(false)}
-                      className={cn(
-                        "flex items-center px-3 py-3 rounded-lg transition-colors text-sm",
-                        isActive 
-                          ? 'bg-orange-100 text-orange-600' 
-                          : 'text-gray-600 hover:bg-gray-100'
-                      )}
-                    >
-                      <Icon className="h-5 w-5 mr-3" />
-                      <span>{item.label}</span>
-                    </Link>
-                  );
-                })}
-              </nav>
-              
-              <div className="p-4 border-t">
-                <Link to="/" onClick={() => setSidebarOpen(false)}>
-                  <Button variant="outline" className="w-full">
-                    <ArrowLeft className="h-4 w-4 mr-2" />
-                    Retour au site
-                  </Button>
-                </Link>
-              </div>
-            </div>
-          </div>
-        )}
 
         {/* Main Content */}
         <div className="flex-1 p-4 lg:p-8 overflow-auto min-w-0">
