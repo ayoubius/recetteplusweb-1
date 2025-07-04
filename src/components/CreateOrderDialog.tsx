@@ -131,10 +131,8 @@ const CreateOrderDialog: React.FC<CreateOrderDialogProps> = ({ children }) => {
 
       if (error) throw error;
 
-      // Générer le code QR pour la commande
       const qrCodeDataURL = await generateQRCode(data.id);
       
-      // Mettre à jour la commande avec le code QR
       if (qrCodeDataURL) {
         await supabase
           .from('orders')
@@ -270,6 +268,15 @@ const CreateOrderDialog: React.FC<CreateOrderDialogProps> = ({ children }) => {
                   <Badge variant="secondary" className="mt-2">
                     Paiement à la réception
                   </Badge>
+                  {/* Orange Money bientôt disponible */}
+                  <div className="mt-2 p-2 bg-yellow-50 border border-yellow-200 rounded text-xs">
+                    <div className="flex items-center justify-between">
+                      <span className="text-yellow-800">🧡 Orange Money</span>
+                      <Badge variant="secondary" className="bg-yellow-100 text-yellow-800 text-xs">
+                        Bientôt disponible
+                      </Badge>
+                    </div>
+                  </div>
                 </div>
               )}
             </div>

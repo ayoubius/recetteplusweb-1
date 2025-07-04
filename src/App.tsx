@@ -1,108 +1,190 @@
 
-import React from 'react';
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { Toaster } from '@/components/ui/sonner';
-import { AuthProvider } from '@/contexts/AuthContext';
-import { AuthProvider as SupabaseAuthProvider } from '@/contexts/SupabaseAuthContext';
-import Layout from '@/components/Layout';
-import AdminLayout from '@/components/AdminLayout';
-import Home from '@/pages/Index';
-import About from '@/pages/About';
-import Products from '@/pages/Products';
-import Recipes from '@/pages/Recipes';
-import Login from '@/pages/Login';
-import Register from '@/pages/Signup';
-import Profile from '@/pages/Profile';
-import ProductDetails from '@/pages/ProductDetail';
-import RecipeDetails from '@/pages/RecipeDetail';
-import NotFound from '@/pages/NotFound';
-import VideoPage from '@/pages/Videos';
-import VideoDetails from '@/pages/VideoDetail';
-import CartPage from '@/pages/Cart';
-import CheckoutPage from '@/pages/Cart';
-import OrderConfirmationPage from '@/pages/OrderHistory';
-import DownloadApp from '@/pages/DownloadApp';
+import { Toaster } from "@/components/ui/toaster";
+import { Toaster as Sonner } from "@/components/ui/sonner";
+import { TooltipProvider } from "@/components/ui/tooltip";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { SupabaseAuthProvider } from "@/contexts/SupabaseAuthContext";
+import Index from "./pages/Index";
+import About from "./pages/About";
+import Recipes from "./pages/Recipes";
+import RecipeDetail from "./pages/RecipeDetail";
+import Products from "./pages/Products";
+import ProductDetail from "./pages/ProductDetail";
+import Videos from "./pages/Videos";
+import VideoDetail from "./pages/VideoDetail";
+import Cart from "./pages/Cart";
+import Profile from "./pages/Profile";
+import OrderHistory from "./pages/OrderHistory";
+import Login from "./pages/Login";
+import Signup from "./pages/Signup";
+import ForgotPassword from "./pages/ForgotPassword";
+import ResetPassword from "./pages/ResetPassword";
+import VerifyEmail from "./pages/VerifyEmail";
+import PhoneAuth from "./pages/PhoneAuth";
+import PreconfiguredCarts from "./pages/PreconfiguredCarts";
+import PreconfiguredCartDetail from "./pages/PreconfiguredCartDetail";
+import Favorites from "./pages/Favorites";
+import NotFound from "./pages/NotFound";
+import DownloadApp from "./pages/DownloadApp";
+import MobileRedirect from "./pages/MobileRedirect";
+import ProtectedRoute from "./components/ProtectedRoute";
+import AdminLayout from "./components/AdminLayout";
+import AdminDashboard from "./pages/admin/AdminDashboard";
+import ProductManagement from "./pages/admin/ProductManagement";
+import RecipeManagement from "./pages/admin/RecipeManagement";
+import VideoManagement from "./pages/admin/VideoManagement";
+import CategoryManagement from "./pages/admin/CategoryManagement";
+import OrderManagement from "./pages/admin/OrderManagement";
+import UserManagement from "./pages/admin/UserManagement";
+import DeliveryManagement from "./pages/admin/DeliveryManagement";
+import DeliveryZonesManagement from "./pages/admin/DeliveryZonesManagement";
+import PreconfiguredCartManagement from "./pages/admin/PreconfiguredCartManagement";
+import PermissionsManagement from "./pages/admin/PermissionsManagement";
+import TeamMembersManagement from "./pages/admin/TeamMembersManagement";
+import NewsletterManagement from "./pages/admin/NewsletterManagement";
+import DeliveryDashboard from "./pages/DeliveryDashboard";
 
-import AdminDashboard from '@/pages/admin/AdminDashboard';
-import UserManagement from '@/pages/admin/UserManagement';
-import ProductManagement from '@/pages/admin/ProductManagement';
-import RecipeManagement from '@/pages/admin/RecipeManagement';
-import VideoManagement from '@/pages/admin/VideoManagement';
-import OrderManagement from '@/pages/admin/OrderManagement';
-import DeliveryManagement from '@/pages/admin/DeliveryManagement';
-import CategoryManagement from '@/pages/admin/CategoryManagement';
-import NewsletterManagement from '@/pages/admin/NewsletterManagement';
-import PreconfiguredCartManagement from '@/pages/admin/PreconfiguredCartManagement';
-import DeliveryZonesManagement from '@/pages/admin/DeliveryZonesManagement';
-import TeamMembersManagement from '@/pages/admin/TeamMembersManagement';
-import PermissionsManagement from '@/pages/admin/PermissionsManagement';
+const queryClient = new QueryClient();
 
-const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      staleTime: 5 * 60 * 1000,
-      retry: 1,
-    },
-  },
-});
-
-function App() {
-  return (
-    <QueryClientProvider client={queryClient}>
-      <SupabaseAuthProvider>
-        <AuthProvider>
-          <BrowserRouter>
-            <Toaster />
-            <Routes>
-              <Route path="/" element={<Layout><Home /></Layout>} />
-              <Route path="/about" element={<Layout><About /></Layout>} />
-              <Route path="/download-app" element={<Layout><DownloadApp /></Layout>} />
-              {/* Routes en français pour correspondre aux liens du Header */}
-              <Route path="/produits" element={<Layout><Products /></Layout>} />
-              <Route path="/produits/:id" element={<Layout><ProductDetails /></Layout>} />
-              <Route path="/recettes" element={<Layout><Recipes /></Layout>} />
-              <Route path="/recettes/:id" element={<Layout><RecipeDetails /></Layout>} />
-              <Route path="/videos" element={<Layout><VideoPage /></Layout>} />
-              <Route path="/videos/:id" element={<Layout><VideoDetails /></Layout>} />
-              {/* Routes alternatives en anglais pour la compatibilité */}
-              <Route path="/products" element={<Layout><Products /></Layout>} />
-              <Route path="/products/:id" element={<Layout><ProductDetails /></Layout>} />
-              <Route path="/recipes" element={<Layout><Recipes /></Layout>} />
-              <Route path="/recipes/:id" element={<Layout><RecipeDetails /></Layout>} />
-              <Route path="/categories/:category" element={<Layout><Products /></Layout>} />
-              <Route path="/search" element={<Layout><Products /></Layout>} />
-              <Route path="/login" element={<Login />} />
-              <Route path="/register" element={<Register />} />
-              <Route path="/profile" element={<Layout><Profile /></Layout>} />
-              <Route path="/panier" element={<Layout><CartPage /></Layout>} />
-              <Route path="/cart" element={<Layout><CartPage /></Layout>} />
-              <Route path="/checkout" element={<Layout><CheckoutPage /></Layout>} />
-              <Route path="/order-confirmation" element={<Layout><OrderConfirmationPage /></Layout>} />
-              <Route path="/favoris" element={<Layout><NotFound /></Layout>} />
-              
-              {/* Admin Routes avec AdminLayout */}
-              <Route path="/admin" element={<AdminLayout><AdminDashboard /></AdminLayout>} />
-              <Route path="/admin/users" element={<AdminLayout><UserManagement /></AdminLayout>} />
-              <Route path="/admin/products" element={<AdminLayout><ProductManagement /></AdminLayout>} />
-              <Route path="/admin/recipes" element={<AdminLayout><RecipeManagement /></AdminLayout>} />
-              <Route path="/admin/videos" element={<AdminLayout><VideoManagement /></AdminLayout>} />
-              <Route path="/admin/orders" element={<AdminLayout><OrderManagement /></AdminLayout>} />
-              <Route path="/admin/delivery" element={<AdminLayout><DeliveryManagement /></AdminLayout>} />
-              <Route path="/admin/delivery-zones" element={<AdminLayout><DeliveryZonesManagement /></AdminLayout>} />
-              <Route path="/admin/categories" element={<AdminLayout><CategoryManagement /></AdminLayout>} />
-              <Route path="/admin/newsletter" element={<AdminLayout><NewsletterManagement /></AdminLayout>} />
-              <Route path="/admin/preconfigured-carts" element={<AdminLayout><PreconfiguredCartManagement /></AdminLayout>} />
-              <Route path="/admin/team-members" element={<AdminLayout><TeamMembersManagement /></AdminLayout>} />
-              <Route path="/admin/permissions" element={<AdminLayout><PermissionsManagement /></AdminLayout>} />
-              
-              <Route path="*" element={<Layout><NotFound /></Layout>} />
-            </Routes>
-          </BrowserRouter>
-        </AuthProvider>
-      </SupabaseAuthProvider>
-    </QueryClientProvider>
-  );
-}
+const App = () => (
+  <QueryClientProvider client={queryClient}>
+    <SupabaseAuthProvider>
+      <TooltipProvider>
+        <Toaster />
+        <Sonner />
+        <BrowserRouter>
+          <Routes>
+            <Route path="/" element={<Index />} />
+            <Route path="/about" element={<About />} />
+            <Route path="/recettes" element={<Recipes />} />
+            <Route path="/recettes/:id" element={<RecipeDetail />} />
+            <Route path="/produits" element={<Products />} />
+            <Route path="/produits/:id" element={<ProductDetail />} />
+            <Route path="/videos" element={<Videos />} />
+            <Route path="/videos/:id" element={<VideoDetail />} />
+            <Route path="/paniers" element={<PreconfiguredCarts />} />
+            <Route path="/paniers/:id" element={<PreconfiguredCartDetail />} />
+            <Route path="/panier" element={<Cart />} />
+            <Route path="/favoris" element={<Favorites />} />
+            <Route path="/favorites" element={<Favorites />} />
+            <Route path="/profil" element={<Profile />} />
+            <Route path="/commandes" element={<OrderHistory />} />
+            <Route path="/connexion" element={<Login />} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/inscription" element={<Signup />} />
+            <Route path="/signup" element={<Signup />} />
+            <Route path="/mot-de-passe-oublie" element={<ForgotPassword />} />
+            <Route path="/forgot-password" element={<ForgotPassword />} />
+            <Route path="/reinitialiser-mot-de-passe" element={<ResetPassword />} />
+            <Route path="/reset-password" element={<ResetPassword />} />
+            <Route path="/verification-email" element={<VerifyEmail />} />
+            <Route path="/verify-email" element={<VerifyEmail />} />
+            <Route path="/auth/phone" element={<PhoneAuth />} />
+            <Route path="/download" element={<DownloadApp />} />
+            <Route path="/mobile" element={<MobileRedirect />} />
+            <Route path="/livraison" element={<DeliveryDashboard />} />
+            
+            {/* Admin Routes */}
+            <Route path="/admin" element={
+              <ProtectedRoute>
+                <AdminLayout>
+                  <AdminDashboard />
+                </AdminLayout>
+              </ProtectedRoute>
+            } />
+            <Route path="/admin/produits" element={
+              <ProtectedRoute>
+                <AdminLayout>
+                  <ProductManagement />
+                </AdminLayout>
+              </ProtectedRoute>
+            } />
+            <Route path="/admin/recettes" element={
+              <ProtectedRoute>
+                <AdminLayout>
+                  <RecipeManagement />
+                </AdminLayout>
+              </ProtectedRoute>
+            } />
+            <Route path="/admin/videos" element={
+              <ProtectedRoute>
+                <AdminLayout>
+                  <VideoManagement />
+                </AdminLayout>
+              </ProtectedRoute>
+            } />
+            <Route path="/admin/categories" element={
+              <ProtectedRoute>
+                <AdminLayout>
+                  <CategoryManagement />
+                </AdminLayout>
+              </ProtectedRoute>
+            } />
+            <Route path="/admin/commandes" element={
+              <ProtectedRoute>
+                <AdminLayout>
+                  <OrderManagement />
+                </AdminLayout>
+              </ProtectedRoute>
+            } />
+            <Route path="/admin/utilisateurs" element={
+              <ProtectedRoute>
+                <AdminLayout>
+                  <UserManagement />
+                </AdminLayout>
+              </ProtectedRoute>
+            } />
+            <Route path="/admin/livraisons" element={
+              <ProtectedRoute>
+                <AdminLayout>
+                  <DeliveryManagement />
+                </AdminLayout>
+              </ProtectedRoute>
+            } />
+            <Route path="/admin/zones-livraison" element={
+              <ProtectedRoute>
+                <AdminLayout>
+                  <DeliveryZonesManagement />
+                </AdminLayout>
+              </ProtectedRoute>
+            } />
+            <Route path="/admin/paniers-predefinis" element={
+              <ProtectedRoute>
+                <AdminLayout>
+                  <PreconfiguredCartManagement />
+                </AdminLayout>
+              </ProtectedRoute>
+            } />
+            <Route path="/admin/permissions" element={
+              <ProtectedRoute>
+                <AdminLayout>
+                  <PermissionsManagement />
+                </AdminLayout>
+              </ProtectedRoute>
+            } />
+            <Route path="/admin/equipe" element={
+              <ProtectedRoute>
+                <AdminLayout>
+                  <TeamMembersManagement />
+                </AdminLayout>
+              </ProtectedRoute>
+            } />
+            <Route path="/admin/newsletter" element={
+              <ProtectedRoute>
+                <AdminLayout>
+                  <NewsletterManagement />
+                </AdminLayout>
+              </ProtectedRoute>
+            } />
+            
+            {/* 404 Route */}
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </BrowserRouter>
+      </TooltipProvider>
+    </SupabaseAuthProvider>
+  </QueryClientProvider>
+);
 
 export default App;

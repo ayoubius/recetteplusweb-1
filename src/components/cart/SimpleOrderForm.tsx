@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -62,7 +61,6 @@ const SimpleOrderForm: React.FC<SimpleOrderFormProps> = ({
     try {
       console.log('Nettoyage des paniers...');
       
-      // Nettoyer le panier personnel
       const { data: personalCart } = await supabase
         .from('personal_carts')
         .select('id')
@@ -78,7 +76,6 @@ const SimpleOrderForm: React.FC<SimpleOrderFormProps> = ({
         console.log('Panier personnel nettoyé');
       }
 
-      // Nettoyer les paniers recettes
       const { data: recipeCarts } = await supabase
         .from('recipe_user_carts')
         .select('id')
@@ -100,7 +97,6 @@ const SimpleOrderForm: React.FC<SimpleOrderFormProps> = ({
         console.log('Paniers recettes nettoyés');
       }
 
-      // Nettoyer les paniers préconfigurés
       await supabase
         .from('user_preconfigured_carts')
         .delete()
@@ -140,7 +136,6 @@ const SimpleOrderForm: React.FC<SimpleOrderFormProps> = ({
     try {
       console.log('Création de la commande...');
       
-      // Créer la commande
       const { data: order, error } = await supabase
         .from('orders')
         .insert({
@@ -174,7 +169,6 @@ const SimpleOrderForm: React.FC<SimpleOrderFormProps> = ({
 
       console.log('Commande créée:', order);
 
-      // Générer le code QR
       const qrCodeDataURL = await generateQRCode(order.id);
       
       if (qrCodeDataURL) {
@@ -186,7 +180,6 @@ const SimpleOrderForm: React.FC<SimpleOrderFormProps> = ({
           .eq('id', order.id);
       }
 
-      // Nettoyer tous les paniers APRÈS la création réussie de la commande
       await clearAllCarts();
 
       toast({
@@ -225,7 +218,7 @@ const SimpleOrderForm: React.FC<SimpleOrderFormProps> = ({
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-6">
-            {/* Méthode de paiement - Uniquement espèces */}
+            {/* Méthode de paiement */}
             <div>
               <Label className="text-base font-semibold mb-3 block">
                 Méthode de paiement
@@ -238,6 +231,22 @@ const SimpleOrderForm: React.FC<SimpleOrderFormProps> = ({
                       <p className="font-medium">Paiement à la livraison</p>
                       <p className="text-sm text-gray-600">Espèces uniquement</p>
                     </div>
+                  </div>
+                </div>
+                
+                {/* Orange Money bientôt disponible */}
+                <div className="p-4 border-2 border-gray-200 bg-gray-50 rounded-lg opacity-75">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-3">
+                      <div className="h-5 w-5 bg-orange-500 rounded-full"></div>
+                      <div>
+                        <p className="font-medium text-gray-700">Orange Money</p>
+                        <p className="text-sm text-gray-500">Paiement mobile sécurisé</p>
+                      </div>
+                    </div>
+                    <Badge variant="secondary" className="bg-yellow-100 text-yellow-800">
+                      Bientôt disponible
+                    </Badge>
                   </div>
                 </div>
               </div>
