@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -8,7 +7,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useOrders, useUpdateOrderStatus } from '@/hooks/useOrders';
 import { useAssignOrderToDelivery, useUpdateDeliveryLocation } from '@/hooks/useDeliveryTracking';
 import { useAuth } from '@/contexts/SupabaseAuthContext';
-import { QrCode, MapPin, Package, Truck, CheckCircle, ExternalLink } from 'lucide-react';
+import { QrCode, MapPin, Package, Truck, CheckCircle, ExternalLink, User, Phone } from 'lucide-react';
 import { formatCFA } from '@/lib/currency';
 
 const DeliveryDashboard = () => {
@@ -140,109 +139,129 @@ const DeliveryDashboard = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-amber-50 via-orange-50 to-amber-100">
-      <div className="container mx-auto px-4 py-8">
-        <div className="mb-6 lg:mb-8">
-          <h1 className="text-2xl lg:text-3xl font-bold text-gray-900 mb-2">Tableau de bord livreur</h1>
-          <p className="text-gray-600">Gérez vos livraisons et suivez vos commandes</p>
+      {/* Header mobile-first */}
+      <div className="bg-white shadow-sm border-b sticky top-0 z-10">
+        <div className="p-4">
+          <h1 className="text-xl font-bold text-gray-900 mb-2">Tableau de bord livreur</h1>
+          <p className="text-sm text-gray-600 mb-4">Gérez vos livraisons et suivez vos commandes</p>
         </div>
+      </div>
 
-        {/* Scanner QR */}
-        <Card className="mb-6 lg:mb-8">
-          <CardHeader>
-            <CardTitle className="flex items-center space-x-2">
-              <QrCode className="h-5 w-5" />
+      <div className="p-4 space-y-4">
+        {/* Scanner QR - Mobile optimized */}
+        <Card className="bg-white shadow-sm">
+          <CardHeader className="pb-3">
+            <CardTitle className="flex items-center space-x-2 text-lg">
+              <div className="p-2 bg-orange-100 rounded-full">
+                <QrCode className="h-4 w-4 text-orange-600" />
+              </div>
               <span>Scanner une commande</span>
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2">
+            <div className="space-y-3">
               <Input
                 placeholder="Code QR de la commande"
                 value={qrCode}
                 onChange={(e) => setQrCode(e.target.value)}
-                className="flex-1"
+                className="h-12 text-base"
               />
               <Button 
                 onClick={handleScanQR}
                 disabled={assignOrderMutation.isPending}
-                className="bg-orange-500 hover:bg-orange-600 w-full sm:w-auto"
+                className="w-full bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white font-medium py-3"
               >
-                {assignOrderMutation.isPending ? 'Traitement...' : 'Scanner'}
+                {assignOrderMutation.isPending ? 'Traitement...' : 'Scanner la commande'}
               </Button>
             </div>
           </CardContent>
         </Card>
 
-        {/* Liste des commandes */}
-        <div className="space-y-4 lg:space-y-6">
-          <h2 className="text-lg lg:text-xl font-semibold text-gray-900">Mes commandes</h2>
+        {/* Liste des commandes - Mobile cards */}
+        <div className="space-y-3">
+          <h2 className="text-lg font-semibold text-gray-900 px-1">Mes commandes</h2>
           
           {myOrders.length === 0 ? (
-            <Card>
-              <CardContent className="p-6 lg:p-8 text-center">
-                <p className="text-gray-600">Aucune commande assignée pour le moment.</p>
+            <Card className="bg-white">
+              <CardContent className="p-8 text-center">
+                <Package className="h-12 w-12 text-gray-300 mx-auto mb-4" />
+                <p className="text-gray-600 mb-2">Aucune commande assignée</p>
+                <p className="text-sm text-gray-500">Scannez un code QR pour commencer</p>
               </CardContent>
             </Card>
           ) : (
-            <div className="grid gap-4 lg:gap-6">
-              {myOrders.map((order) => {
-                const nextAction = getNextAction(order.status);
-                
-                return (
-                  <Card key={order.id} className="hover:shadow-lg transition-shadow">
-                    <CardHeader>
-                      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
-                        <CardTitle className="text-lg">Commande #{order.id.slice(0, 8)}</CardTitle>
-                        <Badge className={getStatusColor(order.status)}>
-                          {order.status}
-                        </Badge>
+            myOrders.map((order) => {
+              const nextAction = getNextAction(order.status);
+              
+              return (
+                <Card key={order.id} className="bg-white shadow-sm border border-gray-200 hover:shadow-md transition-shadow">
+                  <CardContent className="p-4">
+                    {/* Header avec ID et statut */}
+                    <div className="flex items-center justify-between mb-3">
+                      <div className="flex items-center space-x-2">
+                        <div className="p-2 bg-orange-100 rounded-full">
+                          <Package className="h-4 w-4 text-orange-600" />
+                        </div>
+                        <span className="font-semibold text-gray-900">#{order.id.slice(0, 8)}</span>
                       </div>
-                    </CardHeader>
-                    <CardContent className="space-y-4">
+                      <Badge className={`${getStatusColor(order.status)} text-xs px-3 py-1`}>
+                        {order.status}
+                      </Badge>
+                    </div>
+
+                    {/* Adresse de livraison */}
+                    <div className="bg-blue-50 rounded-lg p-3 mb-3">
                       <div className="flex items-start space-x-2">
-                        <MapPin className="h-4 w-4 text-gray-500 mt-0.5 flex-shrink-0" />
-                        <div className="text-sm">
-                          <div className="font-medium">Adresse de livraison</div>
-                          <div className="text-gray-600">
+                        <MapPin className="h-4 w-4 text-blue-600 mt-0.5 flex-shrink-0" />
+                        <div>
+                          <div className="text-sm font-medium text-blue-900 mb-1">Adresse de livraison</div>
+                          <div className="text-sm text-blue-800">
                             {order.delivery_address.street}<br />
                             {order.delivery_address.city}, {order.delivery_address.postal_code}
                           </div>
+                          {order.delivery_notes && (
+                            <div className="text-xs text-blue-700 mt-2 italic">
+                              Note: {order.delivery_notes}
+                            </div>
+                          )}
                         </div>
                       </div>
+                    </div>
 
-                      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
-                        <span className="text-sm text-gray-600">Montant</span>
-                        <span className="font-semibold text-lg">
-                          {formatCFA(order.total_amount)}
-                        </span>
-                      </div>
+                    {/* Montant */}
+                    <div className="flex items-center justify-between mb-4">
+                      <span className="text-sm text-gray-600">Montant à collecter</span>
+                      <span className="font-bold text-xl text-green-600">
+                        {formatCFA(order.total_amount)}
+                      </span>
+                    </div>
 
-                      <div className="flex flex-col sm:flex-row gap-2">
-                        {nextAction && (
-                          <Button
-                            onClick={() => handleUpdateStatus(order.id, nextAction.action)}
-                            disabled={updateStatusMutation.isPending}
-                            className="bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 flex-1"
-                          >
-                            <nextAction.icon className="h-4 w-4 mr-2" />
-                            {nextAction.label}
-                          </Button>
-                        )}
-                        
+                    {/* Actions */}
+                    <div className="space-y-2">
+                      {nextAction && (
                         <Button
-                          variant="outline"
-                          onClick={() => openGoogleMaps(order)}
-                          className="flex-1 sm:flex-none"
+                          onClick={() => handleUpdateStatus(order.id, nextAction.action)}
+                          disabled={updateStatusMutation.isPending}
+                          className="w-full bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white font-medium py-3"
                         >
-                          <ExternalLink className="h-4 w-4 mr-2" />
-                          Ouvrir Maps
+                          <nextAction.icon className="h-4 w-4 mr-2" />
+                          {nextAction.label}
                         </Button>
-                      </div>
-                    </CardContent>
-                  </Card>
-                );
-              })}
-            </div>
+                      )}
+                      
+                      <Button
+                        variant="outline"
+                        onClick={() => openGoogleMaps(order)}
+                        className="w-full border-gray-300 text-gray-700 hover:bg-gray-50 py-3"
+                      >
+                        <ExternalLink className="h-4 w-4 mr-2" />
+                        Ouvrir dans Maps
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              );
+            })
           )}
         </div>
       </div>

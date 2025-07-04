@@ -4,7 +4,7 @@ import { useAuth } from '@/contexts/SupabaseAuthContext';
 import { useCurrentUserPermissions } from '@/hooks/useAdminPermissions';
 import { Navigate, Link, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { Shield, Users, Book, Package, Video, BarChart3, ArrowLeft, Settings, Mail, ShoppingCart, Truck, Menu, X, MapPin, UserCheck } from 'lucide-react';
+import { Shield, Users, Book, Package, Video, BarChart3, ArrowLeft, Settings, Mail, ShoppingCart, Truck, Menu, X, UserCheck } from 'lucide-react';
 import AccessDenied from '@/components/AccessDenied';
 import { useState } from 'react';
 import { cn } from '@/lib/utils';
@@ -84,12 +84,6 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
       path: '/admin/livraisons', 
       icon: Truck, 
       label: 'Livraisons',
-      show: permissions.can_manage_deliveries || permissions.is_super_admin
-    },
-    { 
-      path: '/admin/zones-livraison', 
-      icon: MapPin, 
-      label: 'Zones de Livraison',
       show: permissions.can_manage_deliveries || permissions.is_super_admin
     },
     { 
@@ -288,10 +282,8 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
         </div>
 
         {/* Main Content */}
-        <div className="flex-1 p-4 lg:p-8 overflow-auto min-w-0">
-          <div className="max-w-full">
-            {children}
-          </div>
+        <div className="flex-1 min-w-0">
+          {children}
         </div>
       </div>
     </div>

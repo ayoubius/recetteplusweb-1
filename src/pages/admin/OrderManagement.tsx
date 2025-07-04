@@ -8,7 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { useOrders, useUpdateOrderStatus, useValidateOrder } from '@/hooks/useOrders';
 import { useSupabaseUsers } from '@/hooks/useSupabaseUsers';
-import { Package, Clock, CheckCircle, User, Truck, MapPin, Search, ExternalLink } from 'lucide-react';
+import { Package, Clock, CheckCircle, User, Truck, MapPin, Search, ExternalLink, Phone, Mail } from 'lucide-react';
 import { Order } from '@/hooks/useOrders';
 import { formatCFA } from '@/lib/currency';
 
@@ -109,175 +109,225 @@ const OrderManagement: React.FC = () => {
   }
 
   return (
-    <div className="space-y-4 lg:space-y-6">
-      <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4">
-        <h1 className="text-xl lg:text-2xl font-bold">Gestion des Commandes</h1>
-        <div className="flex flex-col sm:flex-row items-stretch sm:items-center space-y-2 sm:space-y-0 sm:space-x-4 w-full lg:w-auto">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-            <Input
-              placeholder="Rechercher une commande..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10 w-full sm:w-64"
-            />
+    <div className="min-h-screen bg-gray-50">
+      {/* Header mobile-first */}
+      <div className="bg-white shadow-sm border-b sticky top-0 z-10">
+        <div className="p-4">
+          <h1 className="text-xl font-bold text-gray-900 mb-3">Gestion des Commandes</h1>
+          
+          {/* Search and filters - mobile optimized */}
+          <div className="space-y-3">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+              <Input
+                placeholder="Rechercher une commande..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pl-10 h-12 text-base"
+              />
+            </div>
+            <Select value={statusFilter} onValueChange={setStatusFilter}>
+              <SelectTrigger className="h-12 text-base">
+                <SelectValue placeholder="Filtrer par statut" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Tous les statuts</SelectItem>
+                <SelectItem value="pending">En attente</SelectItem>
+                <SelectItem value="validated">Validées</SelectItem>
+                <SelectItem value="assigned">Assignées</SelectItem>
+                <SelectItem value="picked_up">Récupérées</SelectItem>
+                <SelectItem value="in_transit">En livraison</SelectItem>
+                <SelectItem value="delivered">Livrées</SelectItem>
+                <SelectItem value="cancelled">Annulées</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
-          <Select value={statusFilter} onValueChange={setStatusFilter}>
-            <SelectTrigger className="w-full sm:w-48">
-              <SelectValue placeholder="Filtrer par statut" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Tous les statuts</SelectItem>
-              <SelectItem value="pending">En attente</SelectItem>
-              <SelectItem value="validated">Validées</SelectItem>
-              <SelectItem value="assigned">Assignées</SelectItem>
-              <SelectItem value="picked_up">Récupérées</SelectItem>
-              <SelectItem value="in_transit">En livraison</SelectItem>
-              <SelectItem value="delivered">Livrées</SelectItem>
-              <SelectItem value="cancelled">Annulées</SelectItem>
-            </SelectContent>
-          </Select>
         </div>
       </div>
 
-      {/* Statistiques */}
-      <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center space-x-2">
-              <Clock className="h-4 lg:h-5 w-4 lg:w-5 text-yellow-500" />
-              <div>
-                <p className="text-xs lg:text-sm text-gray-600">En attente</p>
-                <p className="text-lg lg:text-2xl font-bold">{ordersByStatus.pending.length}</p>
+      <div className="p-4 space-y-4">
+        {/* Statistiques - Grid mobile optimized */}
+        <div className="grid grid-cols-2 gap-3">
+          <Card className="bg-gradient-to-br from-yellow-50 to-yellow-100 border-yellow-200">
+            <CardContent className="p-4">
+              <div className="flex items-center space-x-3">
+                <div className="p-2 bg-yellow-500 rounded-full">
+                  <Clock className="h-4 w-4 text-white" />
+                </div>
+                <div>
+                  <p className="text-xs text-yellow-700 font-medium">En attente</p>
+                  <p className="text-xl font-bold text-yellow-800">{ordersByStatus.pending.length}</p>
+                </div>
               </div>
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center space-x-2">
-              <CheckCircle className="h-4 lg:h-5 w-4 lg:w-5 text-blue-500" />
-              <div>
-                <p className="text-xs lg:text-sm text-gray-600">Validées</p>
-                <p className="text-lg lg:text-2xl font-bold">{ordersByStatus.validated.length}</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center space-x-2">
-              <User className="h-4 lg:h-5 w-4 lg:w-5 text-purple-500" />
-              <div>
-                <p className="text-xs lg:text-sm text-gray-600">Assignées</p>
-                <p className="text-lg lg:text-2xl font-bold">{ordersByStatus.assigned.length}</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center space-x-2">
-              <Truck className="h-4 lg:h-5 w-4 lg:w-5 text-indigo-500" />
-              <div>
-                <p className="text-xs lg:text-sm text-gray-600">En cours</p>
-                <p className="text-lg lg:text-2xl font-bold">{ordersByStatus.in_progress.length}</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-        <Card className="col-span-2 lg:col-span-1">
-          <CardContent className="p-4">
-            <div className="flex items-center space-x-2">
-              <CheckCircle className="h-4 lg:h-5 w-4 lg:w-5 text-green-500" />
-              <div>
-                <p className="text-xs lg:text-sm text-gray-600">Terminées</p>
-                <p className="text-lg lg:text-2xl font-bold">{ordersByStatus.completed.length}</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+            </CardContent>
+          </Card>
 
-      {/* Tableau des commandes */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Liste des Commandes</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="overflow-x-auto">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead className="min-w-[100px]">Commande</TableHead>
-                  <TableHead className="min-w-[100px]">Client</TableHead>
-                  <TableHead className="min-w-[100px]">Montant</TableHead>
-                  <TableHead className="min-w-[150px]">Adresse</TableHead>
-                  <TableHead className="min-w-[100px]">Statut</TableHead>
-                  <TableHead className="min-w-[80px]">Code QR</TableHead>
-                  <TableHead className="min-w-[100px]">Date</TableHead>
-                  <TableHead className="min-w-[200px]">Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filteredOrders.map((order) => (
-                  <TableRow key={order.id}>
-                    <TableCell className="font-medium">
-                      #{order.id.slice(0, 8)}
-                    </TableCell>
-                    <TableCell className="truncate">
-                      {users.find(u => u.id === order.user_id)?.display_name || 'Utilisateur'}
-                    </TableCell>
-                    <TableCell className="font-medium">{formatCFA(order.total_amount)}</TableCell>
-                    <TableCell>
+          <Card className="bg-gradient-to-br from-blue-50 to-blue-100 border-blue-200">
+            <CardContent className="p-4">
+              <div className="flex items-center space-x-3">
+                <div className="p-2 bg-blue-500 rounded-full">
+                  <CheckCircle className="h-4 w-4 text-white" />
+                </div>
+                <div>
+                  <p className="text-xs text-blue-700 font-medium">Validées</p>
+                  <p className="text-xl font-bold text-blue-800">{ordersByStatus.validated.length}</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="bg-gradient-to-br from-purple-50 to-purple-100 border-purple-200">
+            <CardContent className="p-4">
+              <div className="flex items-center space-x-3">
+                <div className="p-2 bg-purple-500 rounded-full">
+                  <User className="h-4 w-4 text-white" />
+                </div>
+                <div>
+                  <p className="text-xs text-purple-700 font-medium">Assignées</p>
+                  <p className="text-xl font-bold text-purple-800">{ordersByStatus.assigned.length}</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="bg-gradient-to-br from-indigo-50 to-indigo-100 border-indigo-200">
+            <CardContent className="p-4">
+              <div className="flex items-center space-x-3">
+                <div className="p-2 bg-indigo-500 rounded-full">
+                  <Truck className="h-4 w-4 text-white" />
+                </div>
+                <div>
+                  <p className="text-xs text-indigo-700 font-medium">En cours</p>
+                  <p className="text-xl font-bold text-indigo-800">{ordersByStatus.in_progress.length}</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Liste des commandes - Mobile cards */}
+        <div className="space-y-3">
+          {filteredOrders.map((order) => {
+            const customer = users.find(u => u.id === order.user_id);
+            const deliveryPerson = users.find(u => u.id === order.assigned_to);
+            
+            return (
+              <Card key={order.id} className="bg-white shadow-sm border border-gray-200 hover:shadow-md transition-shadow">
+                <CardContent className="p-4">
+                  {/* Header avec ID et statut */}
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="flex items-center space-x-2">
+                      <div className="p-2 bg-orange-100 rounded-full">
+                        <Package className="h-4 w-4 text-orange-600" />
+                      </div>
+                      <span className="font-semibold text-gray-900">#{order.id.slice(0, 8)}</span>
+                    </div>
+                    <Badge className={`${getStatusColor(order.status)} text-xs px-3 py-1`}>
                       <div className="flex items-center space-x-1">
-                        <MapPin className="h-3 w-3 text-gray-400 flex-shrink-0" />
-                        <span className="text-sm truncate">
+                        {getStatusIcon(order.status)}
+                        <span>{getStatusText(order.status)}</span>
+                      </div>
+                    </Badge>
+                  </div>
+
+                  {/* Informations client */}
+                  <div className="bg-gray-50 rounded-lg p-3 mb-3">
+                    <div className="flex items-center space-x-2 mb-2">
+                      <User className="h-4 w-4 text-gray-500" />
+                      <span className="font-medium text-gray-900">
+                        {customer?.display_name || 'Client'}
+                      </span>
+                    </div>
+                    {customer?.email && (
+                      <div className="flex items-center space-x-2 mb-1">
+                        <Mail className="h-3 w-3 text-gray-400" />
+                        <span className="text-sm text-gray-600">{customer.email}</span>
+                      </div>
+                    )}
+                    {customer?.phone_number && (
+                      <div className="flex items-center space-x-2">
+                        <Phone className="h-3 w-3 text-gray-400" />
+                        <span className="text-sm text-gray-600">{customer.phone_number}</span>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Adresse et montant */}
+                  <div className="space-y-2 mb-4">
+                    <div className="flex items-start space-x-2">
+                      <MapPin className="h-4 w-4 text-gray-500 mt-0.5 flex-shrink-0" />
+                      <div className="text-sm">
+                        <div className="font-medium text-gray-900">{order.delivery_address.street}</div>
+                        <div className="text-gray-600">
                           {order.delivery_address.city}, {order.delivery_address.postal_code}
+                        </div>
+                      </div>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm text-gray-600">Montant total</span>
+                      <span className="font-bold text-lg text-orange-600">{formatCFA(order.total_amount)}</span>
+                    </div>
+                    <div className="text-xs text-gray-500">
+                      Créée le {new Date(order.created_at).toLocaleDateString('fr-FR', {
+                        day: 'numeric',
+                        month: 'short',
+                        hour: '2-digit',
+                        minute: '2-digit'
+                      })}
+                    </div>
+                  </div>
+
+                  {/* Livreur assigné */}
+                  {deliveryPerson && (
+                    <div className="bg-blue-50 rounded-lg p-3 mb-4">
+                      <div className="flex items-center space-x-2">
+                        <Truck className="h-4 w-4 text-blue-600" />
+                        <span className="text-sm font-medium text-blue-900">
+                          Livreur: {deliveryPerson.display_name}
                         </span>
                       </div>
-                    </TableCell>
-                    <TableCell>
-                      <Badge className={`${getStatusColor(order.status)} text-xs`}>
-                        <div className="flex items-center space-x-1">
-                          {getStatusIcon(order.status)}
-                          <span>{getStatusText(order.status)}</span>
+                      {order.assigned_at && (
+                        <div className="text-xs text-blue-700 mt-1">
+                          Assigné le {new Date(order.assigned_at).toLocaleDateString('fr-FR', {
+                            day: 'numeric',
+                            month: 'short',
+                            hour: '2-digit',
+                            minute: '2-digit'
+                          })}
                         </div>
-                      </Badge>
-                    </TableCell>
-                    <TableCell className="font-mono text-xs">
-                      {order.qr_code?.slice(-8)}
-                    </TableCell>
-                    <TableCell className="text-sm">
-                      {new Date(order.created_at).toLocaleDateString('fr-FR')}
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex flex-col lg:flex-row gap-2">
-                        {order.status === 'pending' && (
-                          <Button
-                            size="sm"
-                            onClick={() => handleValidateOrder(order.id)}
-                            disabled={validateOrder.isPending}
-                            className="text-xs"
-                          >
-                            Valider
-                          </Button>
-                        )}
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => openGoogleMaps(order)}
-                          className="text-xs"
-                        >
-                          <ExternalLink className="h-3 w-3 mr-1" />
-                          Maps
-                        </Button>
-                        {order.status !== 'delivered' && order.status !== 'cancelled' && (
+                      )}
+                    </div>
+                  )}
+
+                  {/* Actions */}
+                  <div className="flex flex-col space-y-2">
+                    {order.status === 'pending' && (
+                      <Button
+                        onClick={() => handleValidateOrder(order.id)}
+                        disabled={validateOrder.isPending}
+                        className="w-full bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white font-medium py-3"
+                      >
+                        {validateOrder.isPending ? 'Validation...' : 'Valider la commande'}
+                      </Button>
+                    )}
+                    
+                    <div className="flex space-x-2">
+                      <Button
+                        variant="outline"
+                        onClick={() => openGoogleMaps(order)}
+                        className="flex-1 border-gray-300 text-gray-700 hover:bg-gray-50"
+                      >
+                        <ExternalLink className="h-4 w-4 mr-1" />
+                        Maps
+                      </Button>
+                      
+                      {order.status !== 'delivered' && order.status !== 'cancelled' && (
+                        <div className="flex-1">
                           <Select
                             value={order.status}
                             onValueChange={(value) => handleUpdateStatus(order.id, value as Order['status'])}
                           >
-                            <SelectTrigger className="w-32 text-xs">
+                            <SelectTrigger className="w-full h-10 text-sm">
                               <SelectValue />
                             </SelectTrigger>
                             <SelectContent>
@@ -290,16 +340,26 @@ const OrderManagement: React.FC = () => {
                               <SelectItem value="cancelled">Annulée</SelectItem>
                             </SelectContent>
                           </Select>
-                        )}
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </div>
-        </CardContent>
-      </Card>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            );
+          })}
+        </div>
+
+        {filteredOrders.length === 0 && (
+          <Card>
+            <CardContent className="p-8 text-center">
+              <Package className="h-12 w-12 text-gray-300 mx-auto mb-4" />
+              <p className="text-gray-600 mb-2">Aucune commande trouvée</p>
+              <p className="text-sm text-gray-500">Essayez de modifier vos filtres de recherche</p>
+            </CardContent>
+          </Card>
+        )}
+      </div>
     </div>
   );
 };
