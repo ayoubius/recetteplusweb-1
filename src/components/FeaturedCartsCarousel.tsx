@@ -56,7 +56,7 @@ const FeaturedCartsCarousel = () => {
           <Card className="hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-2 border-0 bg-gradient-to-br from-green-50 via-emerald-50 to-teal-50 overflow-hidden">
             <div className="md:flex flex gap-2">
               <div className="md:w-1/2 relative overflow-hidden">
-                <img src={veganCart.image || 'https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=500'} alt={veganCart.name} className="w-full h-64 md:h-full object-cover hover:scale-110 transition-transform duration-700 h-10" />
+                <img src={veganCart.image || 'https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=500'} alt={veganCart.name} className="w-full h-64 md:h-full hover:scale-110 transition-transform duration-700 h-10 object-cover" />
                 <div className="absolute top-4 left-4">
                   <Badge className="bg-green-500 text-white text-sm px-3 py-1">
                     <Heart className="h-4 w-4 mr-1" />
