@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -10,14 +9,23 @@ import { usePreconfiguredCarts } from '@/hooks/useSupabaseCart';
 import { formatCFA } from '@/lib/currency';
 import { useAuth } from '@/contexts/SupabaseAuthContext';
 import { useToast } from '@/hooks/use-toast';
-
 const FeaturedCartsCarousel = () => {
-  const { currentUser } = useAuth();
-  const { toast } = useToast();
-  const { data: occasionCarts = [] } = useFeaturedOccasionCarts();
-  const { data: veganCart } = useFeaturedVeganCart();
-  const { addPreconfiguredCartToPersonal, isAdding } = usePreconfiguredCarts();
-
+  const {
+    currentUser
+  } = useAuth();
+  const {
+    toast
+  } = useToast();
+  const {
+    data: occasionCarts = []
+  } = useFeaturedOccasionCarts();
+  const {
+    data: veganCart
+  } = useFeaturedVeganCart();
+  const {
+    addPreconfiguredCartToPersonal,
+    isAdding
+  } = usePreconfiguredCarts();
   const handleAddToCart = (cartId: string, cartName: string) => {
     if (!currentUser) {
       toast({
@@ -27,15 +35,11 @@ const FeaturedCartsCarousel = () => {
       });
       return;
     }
-
     addPreconfiguredCartToPersonal(cartId);
   };
-
-  return (
-    <div className="space-y-12">
+  return <div className="space-y-12">
       {/* Section Panier Vegan */}
-      {veganCart && (
-        <section>
+      {veganCart && <section>
           <div className="flex items-center justify-between mb-6">
             <h2 className="text-3xl font-bold text-gray-900 flex items-center">
               <Heart className="h-8 w-8 text-green-500 mr-3" />
@@ -52,11 +56,7 @@ const FeaturedCartsCarousel = () => {
           <Card className="hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-2 border-0 bg-gradient-to-br from-green-50 via-emerald-50 to-teal-50 overflow-hidden">
             <div className="md:flex">
               <div className="md:w-1/2 relative overflow-hidden">
-                <img 
-                  src={veganCart.image || 'https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=500'} 
-                  alt={veganCart.name}
-                  className="w-full h-64 md:h-full object-cover hover:scale-110 transition-transform duration-700"
-                />
+                <img src={veganCart.image || 'https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=500'} alt={veganCart.name} className="w-full h-64 md:h-full object-cover hover:scale-110 transition-transform duration-700" />
                 <div className="absolute top-4 left-4">
                   <Badge className="bg-green-500 text-white text-sm px-3 py-1">
                     <Heart className="h-4 w-4 mr-1" />
@@ -65,7 +65,7 @@ const FeaturedCartsCarousel = () => {
                 </div>
               </div>
               
-              <div className="md:w-1/2 p-8">
+              <div className="md:w-1/2 p-8 h-20">
                 <div className="h-full flex flex-col justify-between">
                   <div>
                     <h3 className="text-2xl font-bold mb-4 text-gray-900">
@@ -82,11 +82,7 @@ const FeaturedCartsCarousel = () => {
                     </div>
                     
                     <div className="flex gap-3">
-                      <Button 
-                        onClick={() => handleAddToCart(veganCart.id, veganCart.name)}
-                        disabled={!currentUser || isAdding}
-                        className="flex-1 bg-green-500 hover:bg-green-600 text-white py-3 text-lg"
-                      >
+                      <Button onClick={() => handleAddToCart(veganCart.id, veganCart.name)} disabled={!currentUser || isAdding} className="flex-1 bg-green-500 hover:bg-green-600 text-white py-3 text-lg">
                         <ShoppingCart className="h-5 w-5 mr-2" />
                         {isAdding ? 'Ajout...' : 'Ajouter au panier'}
                       </Button>
@@ -102,12 +98,10 @@ const FeaturedCartsCarousel = () => {
               </div>
             </div>
           </Card>
-        </section>
-      )}
+        </section>}
 
       {/* Section Paniers par Occasion */}
-      {occasionCarts.length > 0 && (
-        <section>
+      {occasionCarts.length > 0 && <section>
           <div className="flex items-center justify-between mb-6">
             <h2 className="text-3xl font-bold text-gray-900 flex items-center">
               <Star className="h-8 w-8 text-orange-500 mr-3" />
@@ -122,14 +116,9 @@ const FeaturedCartsCarousel = () => {
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {occasionCarts.slice(0, 3).map((cart) => (
-              <Card key={cart.id} className="hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 overflow-hidden group">
+            {occasionCarts.slice(0, 3).map(cart => <Card key={cart.id} className="hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 overflow-hidden group">
                 <div className="relative overflow-hidden">
-                  <img 
-                    src={cart.image || 'https://images.unsplash.com/photo-1542838132-92c53300491e?w=500'} 
-                    alt={cart.name}
-                    className="w-full h-48 object-cover group-hover:scale-110 transition-transform duration-500"
-                  />
+                  <img src={cart.image || 'https://images.unsplash.com/photo-1542838132-92c53300491e?w=500'} alt={cart.name} className="w-full h-48 object-cover group-hover:scale-110 transition-transform duration-500" />
                   <div className="absolute top-3 left-3">
                     <Badge className="bg-orange-500 text-white">
                       <Star className="h-3 w-3 mr-1" />
@@ -156,11 +145,7 @@ const FeaturedCartsCarousel = () => {
                   </div>
                   
                   <div className="space-y-3">
-                    <Button 
-                      onClick={() => handleAddToCart(cart.id, cart.name)}
-                      disabled={!currentUser || isAdding}
-                      className="w-full bg-orange-500 hover:bg-orange-600 text-white"
-                    >
+                    <Button onClick={() => handleAddToCart(cart.id, cart.name)} disabled={!currentUser || isAdding} className="w-full bg-orange-500 hover:bg-orange-600 text-white">
                       <ShoppingCart className="h-4 w-4 mr-2" />
                       {isAdding ? 'Ajout...' : 'Ajouter au panier'}
                     </Button>
@@ -172,13 +157,9 @@ const FeaturedCartsCarousel = () => {
                     </Link>
                   </div>
                 </CardContent>
-              </Card>
-            ))}
+              </Card>)}
           </div>
-        </section>
-      )}
-    </div>
-  );
+        </section>}
+    </div>;
 };
-
 export default FeaturedCartsCarousel;
