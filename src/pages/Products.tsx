@@ -12,38 +12,64 @@ import { formatCFA } from '@/lib/currency';
 import FeaturedCartsCarousel from '@/components/FeaturedCartsCarousel';
 
 const Products = () => {
-  const { data: products = [], isLoading } = useSupabaseProducts();
+  const { data: products = [], isLoading, error } = useSupabaseProducts();
   const { addToCart, isAdding } = useAddToCart();
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [sortBy, setSortBy] = useState<string>('name');
 
+  console.log('Products data:', products);
+  console.log('Products loading:', isLoading);
+  console.log('Products error:', error);
+
   // Filtrage et tri des produits
   const filteredProducts = products
     .filter(product => {
-      const matchesSearch = product.name.toLowerCase().includes(searchTerm.toLowerCase());
+      if (!product) return false;
+      const matchesSearch = product.name?.toLowerCase().includes(searchTerm.toLowerCase()) || false;
       const matchesCategory = selectedCategory === 'all' || product.category === selectedCategory;
       return matchesSearch && matchesCategory && product.in_stock;
     })
     .sort((a, b) => {
+      if (!a || !b) return 0;
       switch (sortBy) {
         case 'price-asc':
-          return a.price - b.price;
+          return (a.price || 0) - (b.price || 0);
         case 'price-desc':
-          return b.price - a.price;
+          return (b.price || 0) - (a.price || 0);
         case 'rating':
           return (b.rating || 0) - (a.rating || 0);
         default:
-          return a.name.localeCompare(b.name);
+          return (a.name || '').localeCompare(b.name || '');
       }
     });
 
   // Obtenir les catégories uniques
-  const categories = Array.from(new Set(products.map(product => product.category)));
+  const categories = Array.from(new Set(products.filter(p => p?.category).map(product => product.category)));
 
   const handleAddToCart = async (productId: string) => {
+    if (!productId) return;
     await addToCart(productId, 1);
   };
+
+  if (error) {
+    console.error('Error loading products:', error);
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-amber-50 via-orange-50 to-amber-100">
+        <div className="container mx-auto px-4 py-8">
+          <Card>
+            <CardContent className="text-center py-12">
+              <ShoppingCart className="h-16 w-16 text-gray-400 mx-auto mb-4" />
+              <h3 className="text-xl font-semibold text-gray-900 mb-2">Erreur de chargement</h3>
+              <p className="text-gray-600">
+                Impossible de charger les produits. Veuillez réessayer plus tard.
+              </p>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    );
+  }
 
   if (isLoading) {
     return (
@@ -103,8 +129,8 @@ const Products = () => {
                 <SelectContent>
                   <SelectItem value="all">Toutes les catégories</SelectItem>
                   {categories.map(category => (
-                    <SelectItem key={category} value={category}>
-                      {category}
+                    <SelectItem key={category} value={category || 'unknown'}>
+                      {category || 'Catégorie inconnue'}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -137,7 +163,10 @@ const Products = () => {
               <ShoppingCart className="h-16 w-16 text-gray-400 mx-auto mb-4" />
               <h3 className="text-xl font-semibold text-gray-900 mb-2">Aucun produit trouvé</h3>
               <p className="text-gray-600">
-                Essayez de modifier vos critères de recherche ou de filtrage.
+                {products.length === 0 
+                  ? "Aucun produit n'est disponible pour le moment."
+                  : "Essayez de modifier vos critères de recherche ou de filtrage."
+                }
               </p>
             </CardContent>
           </Card>
@@ -148,7 +177,7 @@ const Products = () => {
                 <div className="relative overflow-hidden rounded-t-lg">
                   <img 
                     src={product.image || '/placeholder.svg'} 
-                    alt={product.name}
+                    alt={product.name || 'Produit'}
                     className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300"
                   />
                   {product.promotion && (
@@ -168,12 +197,12 @@ const Products = () => {
                 <CardContent className="p-4">
                   <div className="mb-2">
                     <Badge variant="outline" className="text-xs">
-                      {product.category}
+                      {product.category || 'Non classé'}
                     </Badge>
                   </div>
                   
                   <h3 className="font-semibold text-lg mb-2 line-clamp-2">
-                    {product.name}
+                    {product.name || 'Produit sans nom'}
                   </h3>
                   
                   <div className="flex items-center mb-3">
@@ -197,9 +226,9 @@ const Products = () => {
                   <div className="flex items-center justify-between mb-4">
                     <div>
                       <span className="text-lg font-bold text-orange-500">
-                        {formatCFA(product.price)}
+                        {formatCFA(product.price || 0)}
                       </span>
-                      <p className="text-xs text-gray-500">par {product.unit}</p>
+                      <p className="text-xs text-gray-500">par {product.unit || 'unité'}</p>
                     </div>
                   </div>
                   

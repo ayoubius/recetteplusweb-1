@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Search, User, ShoppingCart, Heart, LogOut, Menu, X, Shield } from 'lucide-react';
@@ -53,10 +54,10 @@ const Header = () => {
   const NavigationLinks = ({ mobile = false, onLinkClick = () => {} }) => (
     <>
       <Link 
-        to="/about" 
+        to="/a-propos" 
         className={cn(
           "text-sm font-medium transition-colors hover:text-orange-500",
-          isActive("/about") ? "text-orange-500" : "text-gray-600",
+          isActive("/a-propos") ? "text-orange-500" : "text-gray-600",
           mobile && "block py-2 text-base"
         )}
         onClick={onLinkClick}
@@ -199,7 +200,7 @@ const Header = () => {
                       <p className="text-xs text-gray-500">{currentUser.email}</p>
                     </div>
                     <DropdownMenuSeparator />
-                    <DropdownMenuItem onClick={() => navigate('/profile')}>
+                    <DropdownMenuItem onClick={() => navigate('/profil')}>
                       <User className="mr-2 h-4 w-4" />
                       <span>Mon profil</span>
                     </DropdownMenuItem>
@@ -229,11 +230,11 @@ const Header = () => {
                 </DropdownMenu>
               ) : (
                 <>
-                  <Button variant="ghost" size="icon" onClick={() => navigate('/login')}>
+                  <Button variant="ghost" size="icon" onClick={() => navigate('/connexion')}>
                     <User className="h-5 w-5" />
                   </Button>
                   <Button 
-                    onClick={() => navigate('/login')}
+                    onClick={() => navigate('/connexion')}
                     className="bg-orange-500 hover:bg-orange-600 text-white hidden sm:inline-flex text-sm px-3 py-2"
                   >
                     Connexion
@@ -266,7 +267,7 @@ const Header = () => {
                       <div className="pt-4 border-t">
                         <Button 
                           onClick={() => {
-                            navigate('/login');
+                            navigate('/connexion');
                             setIsMenuOpen(false);
                           }}
                           className="w-full bg-orange-500 hover:bg-orange-600 text-white"
