@@ -1,9 +1,9 @@
+
 import React from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Users, Target, Award, Heart, MapPin, Phone, Mail, Clock, Shield, Utensils } from 'lucide-react';
 import { useTeamMembers } from '@/hooks/useTeamMembers';
-import Header from '@/components/Header';
 
 const About = () => {
   const { data: teamMembers, isLoading: teamLoading } = useTeamMembers();
@@ -50,11 +50,10 @@ const About = () => {
   ];
 
   return (
-    <>
-
-      <div className="min-h-screen bg-gradient-to-br from-orange-50 via-amber-50 to-orange-100">
+    <div className="min-h-screen bg-gradient-to-br from-orange-50 via-amber-50 to-orange-100">
+      <div className="container mx-auto px-4 py-8 space-y-16">
         {/* Hero Section */}
-        <div className="text-center mb-16 animate-fade-in">
+        <div className="text-center animate-fade-in">
           <div className="flex items-center justify-center mb-8">
             <img 
               src="/lovable-uploads/fd4068e4-5395-416a-a0d9-2f2084813da4.png" 
@@ -71,7 +70,7 @@ const About = () => {
         </div>
 
         {/* Mission & Vision Section with Chef Illustration */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 mb-16 items-center">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
           <div className="order-2 lg:order-1">
             <Card className="shadow-2xl border-0 bg-white/95 backdrop-blur-sm hover:shadow-3xl transition-all duration-300">
               <CardHeader>
@@ -103,7 +102,7 @@ const About = () => {
         </div>
 
         {/* Values Section */}
-        <div className="mb-16">
+        <div>
           <h2 className="text-4xl font-bold text-center text-gray-900 mb-12">Nos Valeurs Fondamentales</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
             {values.map((value, index) => (
@@ -125,7 +124,7 @@ const About = () => {
         </div>
 
         {/* Features Section with Family Meal Illustration */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 mb-16 items-center">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
           <div className="flex justify-center">
             <div className="relative">
               <img 
@@ -159,7 +158,7 @@ const About = () => {
         </div>
 
         {/* Story Section */}
-        <Card className="mb-16 shadow-2xl border-0 bg-white/95 backdrop-blur-sm">
+        <Card className="shadow-2xl border-0 bg-white/95 backdrop-blur-sm">
           <CardHeader>
             <CardTitle className="text-4xl font-bold text-center text-gray-900 mb-4">Notre Histoire</CardTitle>
           </CardHeader>
@@ -194,7 +193,7 @@ const About = () => {
         </Card>
 
         {/* Team Section - Using Database Data */}
-        <div className="mb-16">
+        <div>
           <h2 className="text-4xl font-bold text-center text-gray-900 mb-12">Notre Équipe d'Experts</h2>
           
           {teamLoading ? (
@@ -274,7 +273,7 @@ const About = () => {
           </CardContent>
         </Card>
       </div>
-    </>
+    </div>
   );
 };
 
