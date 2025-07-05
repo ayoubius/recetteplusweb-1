@@ -112,6 +112,7 @@ const App = () => (
               <Route path="permissions" element={<PermissionsManagement />} />
               <Route path="equipe" element={<TeamMembersManagement />} />
               <Route path="paniers-preconfigures" element={<PreconfiguredCartManagement />} />
+              <Route path="preconfigured-carts" element={<PreconfiguredCartManagement />} />
             </Route>
 
             {/* Delivery Dashboard */}

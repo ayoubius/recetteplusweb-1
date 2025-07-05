@@ -10,7 +10,11 @@ export default defineConfig(({ mode }) => ({
     host: "::",
     port: 8080,
   },
-  plugins: [
+  preview : {
+    host: "::",
+    port : 3000
+ }
+,  plugins: [
     react(),
     mode === 'development' &&
     componentTagger(),
