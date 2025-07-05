@@ -54,7 +54,7 @@ const FeaturedCartsCarousel = () => {
           </div>
           
           <Card className="hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-2 border-0 bg-gradient-to-br from-green-50 via-emerald-50 to-teal-50 overflow-hidden">
-            <div className="md:flex flex gap-2 mb-4 ">
+            <div className="md:flex flex gap-2">
               <div className="md:w-1/2 relative overflow-hidden">
                 <img src={veganCart.image || 'https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=500'} alt={veganCart.name} className="w-full h-64 md:h-full object-cover hover:scale-110 transition-transform duration-700 h-10" />
                 <div className="absolute top-4 left-4">
