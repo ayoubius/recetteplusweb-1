@@ -62,7 +62,7 @@ const MobileRedirect = () => {
           </div>
 
           <div className="space-y-4">
-            <Link to="/download-app" className="block">
+            <Link to="/telecharger-app" className="block">
               <Button className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold py-3 rounded-xl shadow-lg transform hover:scale-[1.02] transition-all duration-300">
                 <Download className="h-5 w-5 mr-2" />
                 Télécharger l'application
@@ -81,7 +81,7 @@ const MobileRedirect = () => {
 
           <div className="text-center pt-6 border-t border-gray-100">
             <Link 
-              to="/profile" 
+              to="/profil" 
               className="inline-flex items-center text-gray-500 hover:text-gray-700 text-sm font-medium transition-colors duration-300 hover:scale-105 transform"
             >
               <ArrowLeft className="h-4 w-4 mr-2" />

@@ -4,7 +4,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { useAuth } from '@/contexts/AuthContext';
+import { useAuth } from '@/contexts/SupabaseAuthContext';
 import { useToast } from '@/hooks/use-toast';
 import { Eye, EyeOff } from 'lucide-react';
 
@@ -61,7 +61,7 @@ const Signup = () => {
         variant: "default"
       });
       // Rediriger vers la page de connexion au lieu de la page d'accueil
-      navigate('/login');
+      navigate('/connexion');
     } catch (error: any) {
       let errorMessage = "Une erreur est survenue";
       if (error.message?.includes('already registered')) {
@@ -212,7 +212,7 @@ const Signup = () => {
           <div className="mt-6 text-center">
             <p className="text-sm text-gray-600">
               Déjà un compte ?{' '}
-              <Link to="/login" className="text-orange-500 hover:text-orange-600 font-medium">
+              <Link to="/connexion" className="text-orange-500 hover:text-orange-600 font-medium">
                 Se connecter
               </Link>
             </p>

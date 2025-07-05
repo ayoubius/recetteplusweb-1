@@ -17,14 +17,14 @@ const Index = () => {
     icon: ChefHat,
     title: "Recettes Délicieuses",
     description: "Découvrez des milliers de recettes créées par notre communauté de passionnés",
-    link: "/recipes",
+    link: "/recettes",
     color: "text-orange-500",
     stats: "500+ recettes"
   }, {
     icon: Package,
     title: "Produits Frais",
     description: "Commandez des ingrédients de qualité directement chez vous avec notre boutique",
-    link: "/products",
+    link: "/produits",
     color: "text-green-500",
     stats: "200+ produits"
   }, {
@@ -75,19 +75,19 @@ const Index = () => {
           
           <div className="flex flex-col sm:flex-row gap-4 justify-center mb-12">
             {!currentUser ? <>
-                <Link to="/signup">
+                <Link to="/inscription">
                   <Button size="lg" className="bg-orange-500 hover:bg-orange-600 text-white px-8 py-4 text-lg">
                     Commencer maintenant
                     <ArrowRight className="ml-2 h-5 w-5" />
                   </Button>
                 </Link>
-                <Link to="/login">
+                <Link to="/connexion">
                   <Button variant="outline" size="lg" className="px-8 py-4 text-lg border-orange-200 hover:bg-orange-50">
                     Se connecter
                   </Button>
                 </Link>
               </> : <div className="flex flex-col sm:flex-row gap-4">
-                <Link to="/recipes">
+                <Link to="/recettes">
                   <Button size="lg" className="bg-orange-500 hover:bg-orange-600 text-white px-8 py-4 text-lg">
                     Explorer les recettes
                     <ChefHat className="ml-2 h-5 w-5" />
@@ -120,12 +120,12 @@ const Index = () => {
               
               {/* Download Button */}
               <div className="flex-shrink-0">
-                <Link to="/download-app">
-                  <Button size="lg" className="bg-white text-orange-600 hover:bg-gray-50 hover:text-orange-700 px-4 md:px-6 py-2 md:py-3 text-sm md:text-base font-semibold shadow-lg">
-                    <Download className="mr-1 md:mr-2 h-4 w-4 md:h-5 md:w-5" />
-                    Télécharger l'app
-                  </Button>
-                </Link>
+            <Link to="/telecharger-app">
+              <Button size="lg" className="bg-white text-orange-600 hover:bg-gray-50 hover:text-orange-700 px-4 md:px-6 py-2 md:py-3 text-sm md:text-base font-semibold shadow-lg">
+                <Download className="mr-1 md:mr-2 h-4 w-4 md:h-5 md:w-5" />
+                Télécharger l'app
+              </Button>
+            </Link>
               </div>
             </div>
           </div>
@@ -199,7 +199,7 @@ const Index = () => {
             </div>
 
             <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
-              <Link to="/recipes">
+              <Link to="/recettes">
                 <Card className="hover:shadow-lg transition-all duration-300 cursor-pointer hover:-translate-y-1 border-orange-100">
                   <CardContent className="p-6 text-center">
                     <ChefHat className="h-12 w-12 mx-auto mb-4 text-orange-500" />
@@ -209,7 +209,7 @@ const Index = () => {
                 </Card>
               </Link>
 
-              <Link to="/products">
+              <Link to="/produits">
                 <Card className="hover:shadow-lg transition-all duration-300 cursor-pointer hover:-translate-y-1 border-green-100">
                   <CardContent className="p-6 text-center">
                     <ShoppingCart className="h-12 w-12 mx-auto mb-4 text-green-500" />
@@ -219,7 +219,7 @@ const Index = () => {
                 </Card>
               </Link>
 
-              <Link to="/favorites">
+              <Link to="/favoris">
                 <Card className="hover:shadow-lg transition-all duration-300 cursor-pointer hover:-translate-y-1 border-red-100">
                   <CardContent className="p-6 text-center">
                     <Heart className="h-12 w-12 mx-auto mb-4 text-red-500" />
@@ -229,7 +229,7 @@ const Index = () => {
                 </Card>
               </Link>
 
-              <Link to="/download-app">
+              <Link to="/telecharger-app">
                 <Card className="hover:shadow-lg transition-all duration-300 cursor-pointer hover:-translate-y-1 border-blue-100">
                   <CardContent className="p-6 text-center">
                     <Smartphone className="h-12 w-12 mx-auto mb-4 text-blue-500" />
@@ -252,13 +252,13 @@ const Index = () => {
               Créez votre compte gratuit et commencez à partager vos créations culinaires dès maintenant.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Link to="/signup">
+              <Link to="/inscription">
                 <Button size="lg" variant="secondary" className="px-8 py-4 text-lg">
                   S'inscrire gratuitement
                   <ArrowRight className="ml-2 h-5 w-5" />
                 </Button>
               </Link>
-              <Link to="/download-app">
+              <Link to="/telecharger-app">
                 <Button size="lg" variant="outline" className="border-white hover:bg-white/10 px-8 py-4 text-lg text-gray-800">
                   <Smartphone className="mr-2 h-5 w-5" />
                   Télécharger l'app

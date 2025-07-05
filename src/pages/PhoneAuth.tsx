@@ -266,7 +266,7 @@ const PhoneAuth = () => {
 
           <div className="mt-6 text-center">
             <Link 
-              to="/login" 
+              to="/connexion" 
               className="inline-flex items-center text-orange-500 hover:text-orange-600 font-medium"
             >
               <ArrowLeft className="h-4 w-4 mr-1" />

@@ -165,7 +165,7 @@ const Login = () => {
 
             <div className="flex items-center justify-end">
               <Link 
-                to="/forgot-password" 
+                to="/mot-de-passe-oublie" 
                 className="text-sm text-orange-600 hover:text-orange-700"
               >
                 Mot de passe oublié ?
@@ -183,7 +183,7 @@ const Login = () => {
             <div className="text-center">
               <span className="text-sm text-gray-600">
                 Pas encore de compte ?{' '}
-                <Link to="/signup" className="text-orange-600 hover:text-orange-700 font-medium">
+                <Link to="/inscription" className="text-orange-600 hover:text-orange-700 font-medium">
                   S'inscrire
                 </Link>
               </span>

@@ -20,7 +20,7 @@ const ForgotPassword = () => {
 
     try {
       const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: `${window.location.origin}/reset-password`,
+        redirectTo: `${window.location.origin}/reinitialiser-mot-de-passe`,
       });
 
       if (error) {
@@ -69,7 +69,7 @@ const ForgotPassword = () => {
               Vérifiez votre boîte email et cliquez sur le lien pour réinitialiser votre mot de passe.
             </p>
             <Button asChild className="w-full">
-              <Link to="/login">
+              <Link to="/connexion">
                 <ArrowLeft className="h-4 w-4 mr-2" />
                 Retour à la connexion
               </Link>
@@ -118,7 +118,7 @@ const ForgotPassword = () => {
 
             <div className="text-center">
               <Link 
-                to="/login" 
+                to="/connexion" 
                 className="text-sm text-orange-600 hover:text-orange-700 inline-flex items-center"
               >
                 <ArrowLeft className="h-4 w-4 mr-1" />

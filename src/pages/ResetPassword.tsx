@@ -35,7 +35,7 @@ const ResetPassword = () => {
         description: "Le lien de réinitialisation est invalide ou expiré.",
         variant: "destructive"
       });
-      navigate('/forgot-password');
+      navigate('/mot-de-passe-oublie');
     }
   }, [searchParams, navigate, toast]);
 
@@ -79,7 +79,7 @@ const ResetPassword = () => {
           title: "Succès",
           description: "Votre mot de passe a été mis à jour avec succès."
         });
-        navigate('/login');
+        navigate('/connexion');
       }
     } catch (error) {
       console.error('Password update error:', error);

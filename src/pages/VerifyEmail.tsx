@@ -103,7 +103,7 @@ const VerifyEmail = () => {
           </p>
 
           <div className="space-y-3">
-            <Link to="/login">
+            <Link to="/connexion">
               <Button className="w-full bg-orange-500 hover:bg-orange-600">
                 {verified ? "Se connecter" : "Aller à la connexion"}
               </Button>
